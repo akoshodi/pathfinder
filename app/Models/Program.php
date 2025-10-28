@@ -1,0 +1,21 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+
+class Program extends Model
+{
+    protected $fillable = [
+        'name',
+        'slug',
+        'category',
+        'description',
+    ];
+
+    public function universities(): BelongsToMany
+    {
+        return $this->belongsToMany(University::class);
+    }
+}

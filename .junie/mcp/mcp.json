@@ -1,0 +1,11 @@
+{
+    "mcpServers": {
+        "laravel-boost": {
+            "command": "/usr/bin/php",
+            "args": [
+                "/home/akoshodi/Sites/dev/pathfinder/artisan",
+                "boost:mcp"
+            ]
+        }
+    }
+}
