@@ -69,10 +69,10 @@ export default function CareersIndex({ careers, filters }: Props) {
             <Head title="Careers" />
 
             {/* Hero Section */}
-            <section className="bg-gradient-to-r from-purple-600 to-purple-700 text-white py-12 px-4 sm:px-6 lg:px-8">
+            <section className="bg-gradient-to-r from-emerald-800 to-teal-700 text-white py-12 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-7xl mx-auto">
                     <h1 className="text-4xl font-bold mb-4">Career Opportunities</h1>
-                    <p className="text-lg text-purple-100">
+                    <p className="text-lg text-emerald-100">
                         Discover your next career move with leading companies
                     </p>
                 </div>
@@ -88,7 +88,7 @@ export default function CareersIndex({ careers, filters }: Props) {
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 placeholder="Search by job title, skills, or company..."
-                                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                             />
                             <svg
                                 className="absolute left-3 top-3 h-5 w-5 text-gray-400"
@@ -119,7 +119,7 @@ export default function CareersIndex({ careers, filters }: Props) {
                                         }}
                                         className={`px-4 py-2 rounded-lg transition-colors ${
                                             selectedType === type
-                                                ? 'bg-purple-600 text-white'
+                                                ? 'bg-emerald-600 text-white'
                                                 : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
                                         }`}
                                     >
@@ -141,7 +141,7 @@ export default function CareersIndex({ careers, filters }: Props) {
                                         }}
                                         className={`px-4 py-2 rounded-lg transition-colors ${
                                             selectedLevel === level
-                                                ? 'bg-purple-600 text-white'
+                                                ? 'bg-emerald-600 text-white'
                                                 : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
                                         }`}
                                     >
@@ -160,7 +160,7 @@ export default function CareersIndex({ careers, filters }: Props) {
                                         setRemoteOnly(e.target.checked);
                                         setTimeout(applyFilters, 0);
                                     }}
-                                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                                    className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
                                 />
                                 <span className="ml-2 text-sm font-medium text-gray-700">Remote positions only</span>
                             </label>
@@ -193,7 +193,7 @@ export default function CareersIndex({ careers, filters }: Props) {
                                                 className="w-16 h-16 object-cover rounded"
                                             />
                                         ) : (
-                                            <div className="w-16 h-16 bg-purple-100 rounded flex items-center justify-center text-xl text-purple-600 font-bold">
+                                            <div className="w-16 h-16 bg-emerald-100 rounded flex items-center justify-center text-xl text-emerald-700 font-bold">
                                                 {career.company.name.charAt(0)}
                                             </div>
                                         )}
@@ -205,10 +205,10 @@ export default function CareersIndex({ careers, filters }: Props) {
                                         <p className="text-gray-600 mb-3">{career.company.name}</p>
 
                                         <div className="flex flex-wrap gap-2 mb-3">
-                                            <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+                                            <span className="px-3 py-1 bg-emerald-100 text-emerald-800 text-sm rounded-full">
                                                 {career.type}
                                             </span>
-                                            <span className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-full">
+                                            <span className="px-3 py-1 bg-emerald-50 text-emerald-800 text-sm rounded-full">
                                                 {career.experience_level}
                                             </span>
                                             {career.is_remote && (
@@ -233,7 +233,7 @@ export default function CareersIndex({ careers, filters }: Props) {
                                         <div className="flex items-center justify-between text-sm">
                                             <span className="text-gray-500">Posted {career.posted_at}</span>
                                             {career.salary_range && (
-                                                <span className="font-semibold text-purple-600">
+                                                <span className="font-semibold text-emerald-700">
                                                     {career.salary_range}
                                                 </span>
                                             )}
@@ -253,7 +253,7 @@ export default function CareersIndex({ careers, filters }: Props) {
                                     href={link.url || '#'}
                                     className={`px-4 py-2 rounded ${
                                         link.active
-                                            ? 'bg-purple-600 text-white'
+                                            ? 'bg-emerald-600 text-white'
                                             : 'bg-white text-gray-700 hover:bg-gray-100'
                                     }`}
                                     dangerouslySetInnerHTML={{ __html: link.label }}

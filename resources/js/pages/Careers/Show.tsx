@@ -42,7 +42,7 @@ export default function CareersShow({ career }: Props) {
             <Head title={career.title} />
 
             {/* Hero Section */}
-            <section className="bg-gradient-to-r from-purple-600 to-purple-700 text-white py-12 px-4 sm:px-6 lg:px-8">
+            <section className="bg-gradient-to-r from-emerald-800 to-teal-700 text-white py-12 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-7xl mx-auto">
                     <div className="flex items-start gap-6">
                         {career.company.logo ? (
@@ -52,7 +52,7 @@ export default function CareersShow({ career }: Props) {
                                 className="w-20 h-20 object-cover rounded-lg bg-white p-2"
                             />
                         ) : (
-                            <div className="w-20 h-20 bg-white rounded-lg flex items-center justify-center text-3xl text-purple-600 font-bold">
+                            <div className="w-20 h-20 bg-white rounded-lg flex items-center justify-center text-3xl text-emerald-700 font-bold">
                                 {career.company.name.charAt(0)}
                             </div>
                         )}
@@ -60,7 +60,7 @@ export default function CareersShow({ career }: Props) {
                             <h1 className="text-4xl font-bold mb-2">{career.title}</h1>
                             <Link
                                 href={`/companies/${career.company.slug}`}
-                                className="text-lg text-purple-100 hover:text-white mb-4 inline-block"
+                                className="text-lg text-emerald-100 hover:text-white mb-4 inline-block"
                             >
                                 {career.company.name} →
                             </Link>
@@ -89,7 +89,7 @@ export default function CareersShow({ career }: Props) {
                                 href={career.application_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="px-8 py-3 bg-white text-purple-600 rounded-lg hover:bg-purple-50 transition-colors font-semibold text-lg"
+                                className="px-8 py-3 bg-white text-emerald-700 rounded-lg hover:bg-emerald-50 transition-colors font-semibold text-lg"
                             >
                                 Apply Now
                             </a>
@@ -116,7 +116,7 @@ export default function CareersShow({ career }: Props) {
                                     {career.responsibilities.map((responsibility, index) => (
                                         <li key={index} className="flex items-start">
                                             <svg
-                                                className="h-6 w-6 text-purple-600 mr-3 flex-shrink-0"
+                                                className="h-6 w-6 text-emerald-600 mr-3 flex-shrink-0"
                                                 fill="none"
                                                 stroke="currentColor"
                                                 viewBox="0 0 24 24"
@@ -143,7 +143,7 @@ export default function CareersShow({ career }: Props) {
                                     {career.requirements.map((requirement, index) => (
                                         <li key={index} className="flex items-start">
                                             <svg
-                                                className="h-6 w-6 text-purple-600 mr-3 flex-shrink-0"
+                                                className="h-6 w-6 text-emerald-600 mr-3 flex-shrink-0"
                                                 fill="currentColor"
                                                 viewBox="0 0 20 20"
                                             >
@@ -168,7 +168,7 @@ export default function CareersShow({ career }: Props) {
                                     {career.skills_required.map((skill, index) => (
                                         <span
                                             key={index}
-                                            className="px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-medium"
+                                            className="px-4 py-2 bg-emerald-50 text-emerald-800 rounded-full text-sm font-medium"
                                         >
                                             {skill}
                                         </span>
@@ -185,7 +185,7 @@ export default function CareersShow({ career }: Props) {
                                     {career.benefits.map((benefit, index) => (
                                         <div key={index} className="flex items-start">
                                             <svg
-                                                className="h-5 w-5 text-purple-600 mr-2 flex-shrink-0 mt-0.5"
+                                                className="h-5 w-5 text-emerald-600 mr-2 flex-shrink-0 mt-0.5"
                                                 fill="currentColor"
                                                 viewBox="0 0 20 20"
                                             >
@@ -212,7 +212,7 @@ export default function CareersShow({ career }: Props) {
                                 {career.salary_range && (
                                     <div>
                                         <div className="text-gray-600 mb-1">Salary Range</div>
-                                        <div className="font-semibold text-purple-600">{career.salary_range}</div>
+                                        <div className="font-semibold text-emerald-700">{career.salary_range}</div>
                                     </div>
                                 )}
                                 <div>
@@ -246,7 +246,7 @@ export default function CareersShow({ career }: Props) {
                             <div className="space-y-3">
                                 <Link
                                     href={`/companies/${career.company.slug}`}
-                                    className="text-purple-600 hover:text-purple-700 font-semibold"
+                                    className="text-emerald-700 hover:text-emerald-800 font-semibold"
                                 >
                                     {career.company.name} →
                                 </Link>
@@ -272,7 +272,7 @@ export default function CareersShow({ career }: Props) {
                                     href={career.application_url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="block w-full px-6 py-3 bg-purple-600 text-white text-center rounded-lg hover:bg-purple-700 transition-colors font-semibold"
+                                    className="block w-full px-6 py-3 bg-emerald-600 text-white text-center rounded-lg hover:bg-emerald-700 transition-colors font-semibold"
                                 >
                                     Apply Now
                                 </a>

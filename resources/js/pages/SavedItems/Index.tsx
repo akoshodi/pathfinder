@@ -63,11 +63,11 @@ export default function SavedItemsIndex({ savedItems }: Props) {
     };
 
     const typeColors: Record<string, string> = {
-        University: 'from-blue-600 to-blue-700',
-        Course: 'from-green-600 to-green-700',
-        Company: 'from-emerald-600 to-emerald-700',
-        Career: 'from-purple-600 to-purple-700',
-        BlogPost: 'from-indigo-600 to-indigo-700',
+        University: 'from-emerald-800 to-teal-700',
+        Course: 'from-emerald-800 to-teal-700',
+        Company: 'from-emerald-800 to-teal-700',
+        Career: 'from-emerald-800 to-teal-700',
+        BlogPost: 'from-emerald-800 to-teal-700',
     };
 
     return (
@@ -75,10 +75,10 @@ export default function SavedItemsIndex({ savedItems }: Props) {
             <Head title="Saved Items" />
 
             {/* Hero Section */}
-            <section className="bg-gradient-to-r from-pink-600 to-pink-700 text-white py-12 px-4 sm:px-6 lg:px-8">
+            <section className="bg-gradient-to-r from-emerald-800 to-teal-700 text-white py-12 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-7xl mx-auto">
                     <h1 className="text-4xl font-bold mb-4">Saved Items</h1>
-                    <p className="text-lg text-pink-100">
+                    <p className="text-lg text-emerald-100">
                         Your collection of universities, courses, companies, and careers for easy reference
                     </p>
                 </div>
@@ -108,7 +108,7 @@ export default function SavedItemsIndex({ savedItems }: Props) {
                             <div className="flex flex-wrap gap-3 justify-center">
                                 <Link
                                     href="/universities"
-                                    className="px-6 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
+                                    className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
                                 >
                                     Browse Universities
                                 </Link>
@@ -153,7 +153,7 @@ export default function SavedItemsIndex({ savedItems }: Props) {
                                         {items.map((item) => (
                                             <div
                                                 key={item.id}
-                                                className="border border-gray-200 rounded-lg p-4 hover:border-pink-500 hover:shadow-md transition-all"
+                                                className="border border-gray-200 rounded-lg p-4 hover:border-emerald-600 hover:shadow-md transition-all"
                                             >
                                                 <div className="flex items-start gap-3 mb-3">
                                                     {(item.saveable.logo || item.saveable.featured_image) ? (
@@ -163,14 +163,14 @@ export default function SavedItemsIndex({ savedItems }: Props) {
                                                             className="w-12 h-12 object-cover rounded"
                                                         />
                                                     ) : (
-                                                        <div className="w-12 h-12 bg-pink-100 rounded flex items-center justify-center text-lg">
+                                                        <div className="w-12 h-12 bg-emerald-100 rounded flex items-center justify-center text-lg">
                                                             {typeIcons[type]}
                                                         </div>
                                                     )}
                                                     <div className="flex-1 min-w-0">
                                                         <Link
                                                             href={getItemUrl(item)}
-                                                            className="font-semibold text-gray-900 hover:text-pink-600 line-clamp-2"
+                                                            className="font-semibold text-gray-900 hover:text-emerald-700 line-clamp-2"
                                                         >
                                                             {getItemName(item)}
                                                         </Link>
