@@ -1,6 +1,8 @@
 <?php
 
+use App\Models\ComparisonItem;
 use App\Models\University;
+use App\Models\User;
 
 it('renders public compare for universities via URL params', function () {
     $u1 = University::factory()->create([
@@ -24,4 +26,37 @@ it('renders public compare for universities via URL params', function () {
     $response->assertSuccessful();
     $response->assertSee('Alpha University');
     $response->assertSee('Beta University');
+});
+
+it('allows authenticated users to remove their own comparison items', function () {
+    $user = User::factory()->create();
+    $otherUser = User::factory()->create();
+
+    $university = University::factory()->create([
+        'is_active' => true,
+    ]);
+
+    $item = ComparisonItem::create([
+        'user_id' => $user->id,
+        'comparable_type' => University::class,
+        'comparable_id' => $university->id,
+        'position' => 1,
+    ]);
+
+    $otherItem = ComparisonItem::create([
+        'user_id' => $otherUser->id,
+        'comparable_type' => University::class,
+        'comparable_id' => $university->id,
+        'position' => 1,
+    ]);
+
+    $this->actingAs($user);
+
+    // Can delete own item
+    $this->delete("/comparison/{$item->id}")->assertRedirect();
+    expect(ComparisonItem::find($item->id))->toBeNull();
+
+    // Cannot delete other user's item
+    $this->delete("/comparison/{$otherItem->id}")->assertForbidden();
+    expect(ComparisonItem::find($otherItem->id))->not->toBeNull();
 });

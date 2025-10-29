@@ -56,11 +56,14 @@ it('groups programs by college on the show page', function () {
     $response = $this->get("/universities/{$uni->slug}");
     $response->assertSuccessful();
 
-    $propsComponent = $response->json('props.component');
-    expect($propsComponent)->toBe('Universities/Show');
-    $propsData = $response->json('props.props');
-    expect($propsData)->toBeArray();
+    // Controller returns Inertia::render('PublicPage') with nested component/props
+    $pageProps = $response->viewData('page')['props'] ?? [];
+    expect($pageProps)->toHaveKey('component');
+    expect($pageProps['component'])->toBe('Universities/Show');
+    
+    $propsData = $pageProps['props'] ?? [];
     expect($propsData)->toHaveKey('university');
+    
     $groups = data_get($propsData, 'university.programs_by_college');
     expect($groups)->toBeArray();
     expect(collect($groups)->pluck('college')->all())
