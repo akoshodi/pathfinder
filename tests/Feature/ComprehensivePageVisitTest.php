@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\AlumniAssociation;
 use App\Models\BlogPost;
 use App\Models\Career;
 use App\Models\Company;
@@ -14,7 +13,6 @@ use App\Models\Program;
 use App\Models\Resource;
 use App\Models\University;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 
 beforeEach(function () {
@@ -30,11 +28,9 @@ beforeEach(function () {
     $this->competition = Competition::factory()->create();
     $this->resource = Resource::factory()->create();
     $this->program = Program::factory()->create();
-    
-    // Create occupation
-    $this->occupation = OnetOccupation::factory()->create([
-        'slug' => 'software-developers',
-    ]);
+
+    // Create occupation (slug is derived from onetsoc_code accessor)
+    $this->occupation = OnetOccupation::factory()->create();
 });
 
 describe('Public Pages', function () {
@@ -191,7 +187,7 @@ describe('Links Pages', function () {
     });
 
     it('can visit link show page', function () {
-        $response = $this->get("/links/{$this->link->slug}");
+        $response = $this->get("/links/{$this->link->id}");
         $response->assertSuccessful();
     });
 });
@@ -304,7 +300,8 @@ describe('Authenticated User Pages', function () {
 
     it('can visit two-factor settings', function () {
         $response = $this->actingAs($this->user)->get('/settings/two-factor');
-        $response->assertStatus(200)->or()->assertStatus(302); // May require password confirmation
+        // Fortify may require password confirmation, which returns 302. Accept 200 or 302.
+        expect($response->getStatusCode())->toBeIn([200, 302]);
     });
 
     it('can visit appearance settings', function () {
@@ -316,8 +313,9 @@ describe('Authenticated User Pages', function () {
 describe('Alumni Restricted Pages', function () {
     beforeEach(function () {
         $this->alumniUser = User::factory()->create();
-        $role = Role::firstOrCreate(['name' => 'alumni']);
-        $this->alumniUser->roles()->attach($role->id);
+        $role = Role::firstOrCreate(['name' => 'alumni', 'guard_name' => 'web']);
+        // Use Spatie API to ensure caches are correct
+        $this->alumniUser->assignRole($role);
     });
 
     it('can visit alumni network page as alumni', function () {

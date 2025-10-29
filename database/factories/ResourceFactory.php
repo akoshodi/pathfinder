@@ -17,15 +17,17 @@ class ResourceFactory extends Factory
     public function definition(): array
     {
         $title = $this->faker->words(4, true);
-        
+
         return [
             'user_id' => \App\Models\User::factory(),
             'title' => ucwords($title),
             'slug' => \Illuminate\Support\Str::slug($title).'-'.$this->faker->unique()->numberBetween(1000, 9999),
             'description' => $this->faker->paragraphs(2, true),
-            'type' => $this->faker->randomElement(['pdf', 'video', 'article', 'template', 'tool']),
+            // Allowed by DB CHECK constraint: 'guide', 'article', 'video', 'tool', 'template', 'other'
+            'type' => $this->faker->randomElement(['guide', 'article', 'video', 'tool', 'template', 'other']),
             'url' => $this->faker->url(),
-            'file_path' => $this->faker->optional()->filePath(),
+            // Use a plausible relative path string; not required to exist
+            'file_path' => $this->faker->optional()->lexify('files/????????.pdf'),
             'thumbnail' => $this->faker->optional()->imageUrl(400, 300, 'business'),
             'tags' => json_encode($this->faker->words(3)),
             'categories' => json_encode($this->faker->words(2)),

@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class OnetOccupation extends Model
 {
+    use HasFactory;
+
     protected $table = 'onet_occupation_data';
 
     protected $primaryKey = 'onetsoc_code';
