@@ -45,7 +45,7 @@ class DemoAssessmentSeeder extends Seeder
         if ($attempt->responses()->exists()) {
             // Ensure report exists
             if (! $attempt->report) {
-                (new ReportGenerationService())->generate($attempt);
+                (new ReportGenerationService)->generate($attempt);
             }
 
             return;
@@ -69,7 +69,7 @@ class DemoAssessmentSeeder extends Seeder
 
         // Mark attempt completed and generate report
         $attempt->update(['completed_at' => now()]);
-        (new ReportGenerationService())->generate($attempt);
+        (new ReportGenerationService)->generate($attempt);
 
         $this->command?->info('Seeded demo RIASEC attempt with report (attempt ID: '.$attempt->id.').');
 
@@ -104,7 +104,7 @@ class DemoAssessmentSeeder extends Seeder
                 }
 
                 $skillsAttempt->update(['completed_at' => now()]);
-                (new ReportGenerationService())->generate($skillsAttempt);
+                (new ReportGenerationService)->generate($skillsAttempt);
                 $this->command?->info('Seeded demo Skills attempt with report (attempt ID: '.$skillsAttempt->id.').');
             }
         }
@@ -141,7 +141,7 @@ class DemoAssessmentSeeder extends Seeder
                 }
 
                 $personAttempt->update(['completed_at' => now()]);
-                (new ReportGenerationService())->generate($personAttempt);
+                (new ReportGenerationService)->generate($personAttempt);
                 $this->command?->info('Seeded demo Personality attempt with report (attempt ID: '.$personAttempt->id.').');
             }
         }

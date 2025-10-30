@@ -10,11 +10,11 @@ use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
     Storage::fake('public');
-    
+
     $this->user = User::factory()->create();
     $this->careerFitService = Mockery::mock(CareerFitAnalysisService::class);
     $this->service = new ComprehensivePdfService($this->careerFitService);
-    
+
     // Create assessment types
     $this->riasecType = AssessmentType::factory()->create(['slug' => 'riasec']);
     $this->skillsType = AssessmentType::factory()->create(['slug' => 'skills']);

@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
     $this->user = User::factory()->create();
-    
+
     $this->riasecType = AssessmentType::factory()->create(['slug' => 'riasec']);
     $this->skillsType = AssessmentType::factory()->create(['slug' => 'skills']);
     $this->personalityType = AssessmentType::factory()->create(['slug' => 'personality']);

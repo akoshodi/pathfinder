@@ -11,7 +11,7 @@ beforeEach(function () {
     $this->user = User::factory()->create();
     $this->careerMatchingService = Mockery::mock(CareerMatchingService::class);
     $this->service = new CareerFitAnalysisService($this->careerMatchingService);
-    
+
     // Create assessment types
     $this->riasecType = AssessmentType::factory()->create(['slug' => 'riasec']);
     $this->skillsType = AssessmentType::factory()->create(['slug' => 'skills']);
@@ -118,7 +118,7 @@ it('calculates overall readiness correctly', function () {
 
     foreach ($testCases as $case) {
         $readiness = $this->service->calculateOverallReadiness($case['composite']);
-        
+
         expect($readiness)->toBeArray()
             ->and($readiness['level'])->toBe($case['expected_level'])
             ->and($readiness['score'])->toBe($case['composite'])

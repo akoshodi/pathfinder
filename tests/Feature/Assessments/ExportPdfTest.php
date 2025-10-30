@@ -42,7 +42,7 @@ it('downloads a PDF report for a completed attempt', function () {
         ]);
     }
 
-    (new ReportGenerationService())->generate($attempt);
+    (new ReportGenerationService)->generate($attempt);
 
     $resp = $this->get(route('assessments.export.pdf', ['attempt' => $attempt->id]));
 

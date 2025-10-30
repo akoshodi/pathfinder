@@ -13,9 +13,16 @@ it('home page nav links are valid (public context)', function () {
         ->map(fn ($href) => strtok($href, '#')) // strip hashes
         ->unique()
         ->filter(function ($href) {
-            if (!is_string($href)) { return false; }
-            if ($href === '' || $href === '/' || $href[0] !== '/') { return false; }
-            if (Str::startsWith($href, ['/storage', '/build'])) { return false; }
+            if (! is_string($href)) {
+                return false;
+            }
+            if ($href === '' || $href === '/' || $href[0] !== '/') {
+                return false;
+            }
+            if (Str::startsWith($href, ['/storage', '/build'])) {
+                return false;
+            }
+
             return true;
         })
         ->values();

@@ -9,7 +9,7 @@ use App\Services\Assessment\SkillsScoringService;
 beforeEach(function () {
     $this->user = User::factory()->create();
     $this->skillsType = AssessmentType::factory()->create(['slug' => 'skills']);
-    $this->service = new SkillsScoringService();
+    $this->service = new SkillsScoringService;
 });
 
 it('calculates skill scores correctly from responses', function () {
@@ -68,7 +68,7 @@ it('determines correct proficiency levels', function () {
 
     foreach ($testCases as $index => $case) {
         $domain = "Domain{$index}";
-        
+
         UserAssessmentResponse::factory()->create([
             'attempt_id' => $attempt->id,
             'question_id' => 100 + $index,
@@ -106,7 +106,7 @@ it('groups responses by category correctly', function () {
     ]);
 
     $categories = ['Cognitive', 'Technical', 'Social', 'Management', 'Creative'];
-    
+
     foreach ($categories as $index => $category) {
         UserAssessmentResponse::factory()->create([
             'attempt_id' => $attempt->id,

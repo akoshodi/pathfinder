@@ -1,11 +1,11 @@
 <?php
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\AssessmentQuestion;
 use App\Models\AssessmentType;
 use App\Models\UserAssessmentAttempt;
 use App\Models\UserAssessmentResponse;
 use App\Services\Assessment\PersonalityScoringService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 use function Pest\Laravel\seed;
 
@@ -55,7 +55,7 @@ it('computes Big Five averages and preferences', function () {
         }
     }
 
-    $service = new PersonalityScoringService();
+    $service = new PersonalityScoringService;
     $service->calculateScores($attempt);
 
     $attempt->refresh();

@@ -51,7 +51,11 @@ class BlogPostController extends Controller
      */
     public function create(): InertiaResponse
     {
-        return Inertia::render('Admin/BlogPosts/Create');
+        $users = \App\Models\User::select('id', 'name')->orderBy('name')->get();
+
+        return Inertia::render('Admin/BlogPosts/Create', [
+            'users' => $users,
+        ]);
     }
 
     /**
@@ -61,16 +65,17 @@ class BlogPostController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'slug' => 'required|string|max:255|unique:blog_posts,slug',
             'excerpt' => 'nullable|string|max:500',
             'content' => 'required|string',
             'featured_image' => 'nullable|string|max:500',
             'status' => 'required|string|in:draft,published,archived',
             'published_at' => 'nullable|date',
+            'author_id' => 'required|exists:users,id',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string|max:500',
             'tags' => 'nullable|array',
-            'categories' => 'nullable|array',
         ]);
-
-        $validated['user_id'] = auth()->id();
 
         if ($validated['status'] === 'published' && ! isset($validated['published_at'])) {
             $validated['published_at'] = now();
@@ -99,8 +104,11 @@ class BlogPostController extends Controller
      */
     public function edit(BlogPost $blogPost): InertiaResponse
     {
+        $users = \App\Models\User::select('id', 'name')->orderBy('name')->get();
+
         return Inertia::render('Admin/BlogPosts/Edit', [
             'blogPost' => $blogPost,
+            'users' => $users,
         ]);
     }
 
@@ -111,13 +119,16 @@ class BlogPostController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'slug' => 'required|string|max:255|unique:blog_posts,slug,'.$blogPost->id,
             'excerpt' => 'nullable|string|max:500',
             'content' => 'required|string',
             'featured_image' => 'nullable|string|max:500',
             'status' => 'required|string|in:draft,published,archived',
             'published_at' => 'nullable|date',
+            'author_id' => 'required|exists:users,id',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string|max:500',
             'tags' => 'nullable|array',
-            'categories' => 'nullable|array',
         ]);
 
         if ($validated['status'] === 'published' && ! $blogPost->published_at && ! isset($validated['published_at'])) {

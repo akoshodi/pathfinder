@@ -16,6 +16,7 @@ class OnetDatabaseSeeder extends Seeder
         $sourcePath = Config::get('database.onet_source_path') ?: '/home/akoshodi/data/sqlitedbs/onetdb30.db';
         if (! file_exists($sourcePath)) {
             $this->command?->error("Source ONET SQLite DB not found at: {$sourcePath}");
+
             return;
         }
 
@@ -105,6 +106,7 @@ class OnetDatabaseSeeder extends Seeder
 
                 if (! Schema::hasTable($destTable)) {
                     $this->command?->warn("Skipping missing destination table: {$destTable}");
+
                     continue;
                 }
 
@@ -112,6 +114,7 @@ class OnetDatabaseSeeder extends Seeder
                 $srcHas = $src->select("SELECT name FROM sqlite_master WHERE type='table' AND name = ?", [$sourceTable]);
                 if (empty($srcHas)) {
                     $this->command?->warn("Skipping missing source table: {$sourceTable}");
+
                     continue;
                 }
 
@@ -165,6 +168,7 @@ class OnetDatabaseSeeder extends Seeder
                                 if (is_string($val)) {
                                     return mb_convert_encoding($val, 'UTF-8', 'UTF-8');
                                 }
+
                                 return $val;
                             })
                             ->all();

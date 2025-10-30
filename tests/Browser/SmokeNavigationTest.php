@@ -50,7 +50,7 @@ it('clicks through from blog index to show', function () {
     $page->assertSee('Clickable Blog Post')
         ->assertNoJavascriptErrors()
         ->click('Clickable Blog Post')
-    ->assertSee('Clickable Blog Post');
+        ->assertSee('Clickable Blog Post');
 });
 
 it('clicks through from links index to show', function () {

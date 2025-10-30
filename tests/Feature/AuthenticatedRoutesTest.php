@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+
 use function Pest\Laravel\actingAs;
 
 it('serves authenticated routes successfully for a verified user', function () {
@@ -18,7 +19,7 @@ it('serves authenticated routes successfully for a verified user', function () {
     $this->get('/settings/profile')->assertOk();
     $this->get('/settings/password')->assertOk();
     $this->get('/settings/appearance')->assertOk();
-    
+
     // Two-factor requires password confirmation - either confirm or expect redirect
     $response = $this->get('/settings/two-factor');
     // Accept either OK (if password recently confirmed) or redirect to password confirm
@@ -34,7 +35,7 @@ it('serves alumni-only pages when user has alumni role', function () {
     if (class_exists(\Spatie\Permission\Models\Role::class)) {
         $role = \Spatie\Permission\Models\Role::firstOrCreate([
             'name' => 'alumni',
-            'guard_name' => 'web'
+            'guard_name' => 'web',
         ]);
         $user->roles()->attach($role->id);
     }

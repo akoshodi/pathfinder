@@ -1,16 +1,31 @@
-import { Head, Link } from '@inertiajs/react';
+import Form from './Form';
 
-export default function Edit() {
-    return (
-        <>
-            <Head title="Edit Blog Post" />
-            <div className="py-12">
-                <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-                    <Link href="/admin/blog-posts" className="text-indigo-600 hover:text-indigo-900">← Back</Link>
-                    <h1 className="mt-4 text-2xl font-bold">Edit Blog Post</h1>
-                    <p className="mt-4 text-gray-600">Blog post edit form coming soon...</p>
-                </div>
-            </div>
-        </>
-    );
+interface User {
+    id: number;
+    name: string;
+}
+
+interface BlogPost {
+    id?: number;
+    title: string;
+    slug: string;
+    excerpt: string | null;
+    content: string;
+    featured_image: string | null;
+    status: 'draft' | 'published' | 'archived';
+    published_at: string | null;
+    author_id: number;
+    author?: User;
+    meta_title: string | null;
+    meta_description: string | null;
+    tags: string[] | null;
+}
+
+interface Props {
+    blogPost: BlogPost;
+    users: User[];
+}
+
+export default function Edit({ blogPost, users }: Props) {
+    return <Form blogPost={blogPost} users={users} isEdit={true} />;
 }

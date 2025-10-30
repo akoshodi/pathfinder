@@ -22,6 +22,7 @@ class BlogPost extends Model
     }
 
     protected $fillable = [
+        'author_id',
         'user_id',
         'title',
         'slug',
@@ -31,12 +32,14 @@ class BlogPost extends Model
         'status',
         'published_at',
         'views_count',
+        'meta_title',
+        'meta_description',
         'tags',
         'categories',
     ];
 
     public function author(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class, 'author_id');
     }
 }

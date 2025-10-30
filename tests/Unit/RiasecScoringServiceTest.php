@@ -105,7 +105,7 @@ it('calculates holland code and scores from responses', function () {
         'response_score' => null,
     ]);
 
-    $service = new RiasecScoringService();
+    $service = new RiasecScoringService;
     $riasec = $service->calculateScores($attempt);
 
     expect($riasec->realistic_score)->toBe(4)

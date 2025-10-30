@@ -33,6 +33,10 @@ interface Props<T> {
     onView?: (item: T) => void;
     actions?: (item: T) => React.ReactNode;
     emptyMessage?: string;
+    loading?: boolean;
+    selectable?: boolean;
+    onSelectionChange?: (selected: T[]) => void;
+    bulkActions?: (selected: T[]) => React.ReactNode;
 }
 
 export default function DataTable<T extends { id: number | string }>({
@@ -43,9 +47,14 @@ export default function DataTable<T extends { id: number | string }>({
     onView,
     actions,
     emptyMessage = 'No data available',
+    loading = false,
+    selectable = false,
+    onSelectionChange,
+    bulkActions,
 }: Props<T>) {
     const [sortColumn, setSortColumn] = useState<string | null>(null);
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+    const [selected, setSelected] = useState<Set<number | string>>(new Set());
 
     const isPaginated = (data: any): data is PaginationData<T> => {
         return 'data' in data && 'current_page' in data;
@@ -53,6 +62,31 @@ export default function DataTable<T extends { id: number | string }>({
 
     const items = isPaginated(data) ? data.data : data;
     const showActions = onEdit || onDelete || onView || actions;
+
+    const toggleAll = () => {
+        if (!selectable) return;
+        if (selected.size === items.length) {
+            setSelected(new Set());
+            onSelectionChange?.([]);
+        } else {
+            const all = new Set(items.map((i: any) => i.id));
+            setSelected(all);
+            onSelectionChange?.(items as T[]);
+        }
+    };
+
+    const toggleOne = (id: number | string, item: T) => {
+        if (!selectable) return;
+        const next = new Set(selected);
+        if (next.has(id)) {
+            next.delete(id);
+        } else {
+            next.add(id);
+        }
+        setSelected(next);
+        const selectedItems = items.filter((i: any) => next.has(i.id));
+        onSelectionChange?.(selectedItems as T[]);
+    };
 
     const handleSort = (column: Column<T>) => {
         if (!column.sortable) return;
@@ -80,10 +114,37 @@ export default function DataTable<T extends { id: number | string }>({
 
     return (
         <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
-            <div className="overflow-x-auto">
+            {bulkActions && selectable && (
+                <div className="flex items-center justify-between border-b border-gray-200 bg-gray-50 px-4 py-2 text-sm dark:border-gray-700 dark:bg-gray-900">
+                    <div>
+                        {selected.size} selected
+                    </div>
+                    <div className="flex items-center gap-2">
+                        {bulkActions(items.filter((i: any) => selected.has(i.id)) as T[])}
+                    </div>
+                </div>
+            )}
+            <div className="relative overflow-x-auto">
+                {loading && (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 dark:bg-gray-900/60">
+                        <svg className="h-6 w-6 animate-spin text-indigo-600" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                    </div>
+                )}
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead className="bg-gray-50 dark:bg-gray-900">
                         <tr>
+                            {selectable && (
+                                <th className="w-10 px-4">
+                                    <input
+                                        type="checkbox"
+                                        checked={selected.size === items.length && items.length > 0}
+                                        onChange={toggleAll}
+                                    />
+                                </th>
+                            )}
                             {columns.map((column) => (
                                 <th
                                     key={column.key as string}
@@ -96,12 +157,12 @@ export default function DataTable<T extends { id: number | string }>({
                                         {column.label}
                                         {column.sortable && (
                                             <svg
-                                                className={`h-4 w-4 ${sortColumn === column.key ? 'text-blue-600 dark:text-blue-400' : ''}`}
+                                                className={`h-4 w-4 ${sortColumn === (column.key as string) ? 'text-blue-600 dark:text-blue-400' : ''}`}
                                                 fill="none"
                                                 stroke="currentColor"
                                                 viewBox="0 0 24 24"
                                             >
-                                                {sortColumn === column.key && sortDirection === 'asc' ? (
+                                                {sortColumn === (column.key as string) && sortDirection === 'asc' ? (
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                                                 ) : (
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -143,6 +204,15 @@ export default function DataTable<T extends { id: number | string }>({
                         ) : (
                             items.map((item) => (
                                 <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    {selectable && (
+                                        <td className="w-10 px-4">
+                                            <input
+                                                type="checkbox"
+                                                checked={selected.has(item.id)}
+                                                onChange={() => toggleOne(item.id, item)}
+                                            />
+                                        </td>
+                                    )}
                                     {columns.map((column) => (
                                         <td key={column.key as string} className="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
                                             {column.render ? column.render(getValue(item, column.key), item) : getValue(item, column.key)}
