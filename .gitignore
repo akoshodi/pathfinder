@@ -27,3 +27,4 @@ yarn-error.log
 /.vscode
 /.zed
 /database/onet_source.db
+/reactapp
