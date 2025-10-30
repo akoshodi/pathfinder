@@ -90,6 +90,11 @@ class UserAssessmentAttempt extends Model
         $totalQuestions = $this->assessmentType->question_count;
         $answeredQuestions = $this->responses()->count();
 
-        return $totalQuestions > 0 ? (int) (($answeredQuestions / $totalQuestions) * 100) : 0;
+        $progress = $totalQuestions > 0 ? (int) (($answeredQuestions / $totalQuestions) * 100) : 0;
+
+        // Save progress percentage to database
+        $this->update(['progress_percentage' => $progress]);
+
+        return $progress;
     }
 }

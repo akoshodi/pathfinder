@@ -288,6 +288,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Admin features (requires admin role)
     Route::middleware(['role:super-admin|admin'])->prefix('admin')->as('admin.')->group(function () {
+        // Analytics Dashboard
+        Route::get('/analytics', [\App\Http\Controllers\Admin\AnalyticsController::class, 'index'])->name('analytics');
+
+        // Assessment Management
         Route::get('/assessments/attempts', [\App\Http\Controllers\Admin\AssessmentAdminController::class, 'attempts'])->name('assessments.attempts');
         Route::get('/assessments/reports', [\App\Http\Controllers\Admin\AssessmentAdminController::class, 'reports'])->name('assessments.reports');
 
