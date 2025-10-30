@@ -29,7 +29,8 @@ class AssessmentController extends Controller
                     'description' => $assessment->description,
                     'category' => $assessment->category,
                     'question_count' => $assessment->question_count,
-                    'estimated_duration' => $assessment->estimated_duration,
+                    // Map DB field to UI-friendly name
+                    'estimated_duration' => $assessment->duration_minutes,
                     'instructions' => $assessment->instructions,
                 ];
             });

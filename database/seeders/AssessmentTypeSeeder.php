@@ -19,7 +19,7 @@ class AssessmentTypeSeeder extends Seeder
                 'description' => 'Discover your career interests based on the Holland Codes (RIASEC). This assessment helps identify careers that align with your personality and work preferences.',
                 'category' => 'career_interest',
                 'question_count' => 60,
-                'estimated_duration' => 15,
+                'duration_minutes' => 15,
                 'scoring_config' => [
                     'dimensions' => ['R', 'I', 'A', 'S', 'E', 'C'],
                     'max_score_per_dimension' => 100,
@@ -35,7 +35,7 @@ class AssessmentTypeSeeder extends Seeder
                 'description' => 'Evaluate your proficiency across five key skill domains: Cognitive, Technical, Social, Management, and Creative. Identify your strengths and areas for development.',
                 'category' => 'skills',
                 'question_count' => 50,
-                'estimated_duration' => 20,
+                'duration_minutes' => 20,
                 'scoring_config' => [
                     'domains' => ['Cognitive', 'Technical', 'Social', 'Management', 'Creative'],
                     'proficiency_levels' => ['Novice', 'Intermediate', 'Proficient', 'Advanced', 'Expert'],
@@ -51,7 +51,7 @@ class AssessmentTypeSeeder extends Seeder
                 'description' => 'Understand your personality traits using the Big Five framework. Learn how your openness, conscientiousness, extraversion, agreeableness, and emotional stability influence your work style.',
                 'category' => 'personality',
                 'question_count' => 50,
-                'estimated_duration' => 15,
+                'duration_minutes' => 15,
                 'scoring_config' => [
                     'traits' => ['Openness', 'Conscientiousness', 'Extraversion', 'Agreeableness', 'Emotional Stability'],
                     'scale' => [1, 5],
@@ -70,7 +70,7 @@ class AssessmentTypeSeeder extends Seeder
                 'description' => 'Get a holistic career recommendation by combining your interests, skills, and personality traits. This assessment provides personalized career matches with detailed action plans.',
                 'category' => 'career_fit',
                 'question_count' => 0, // Composite assessment
-                'estimated_duration' => 0, // Depends on sub-assessments
+                'duration_minutes' => 0, // Depends on sub-assessments
                 'scoring_config' => [
                     'required_assessments' => ['riasec', 'skills', 'personality'],
                     'weighting' => [

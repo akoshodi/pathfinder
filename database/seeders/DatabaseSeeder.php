@@ -47,5 +47,13 @@ class DatabaseSeeder extends Seeder
 
         // Seed link aggregator content
         $this->call(LinkSeeder::class);
+
+        // Seed assessments (types and questions)
+        $this->call([
+            AssessmentTypeSeeder::class,
+            RiasecQuestionSeeder::class,
+            SkillsQuestionSeeder::class,
+            PersonalityQuestionSeeder::class,
+        ]);
     }
 }
