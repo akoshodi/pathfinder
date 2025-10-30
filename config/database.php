@@ -116,6 +116,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | O*NET Source Database Path
+    |--------------------------------------------------------------------------
+    |
+    | When importing O*NET data via the OnetDatabaseSeeder, this path is used
+    | to locate the source SQLite database dump. Configure ONET_SOURCE_DB in
+    | your environment to override the default path.
+    |
+    */
+
+    'onet_source_path' => env('ONET_SOURCE_DB', base_path('database/onet_source.db')),
+
+    /*
+    |--------------------------------------------------------------------------
     | Migration Repository Table
     |--------------------------------------------------------------------------
     |

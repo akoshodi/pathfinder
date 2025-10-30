@@ -12,7 +12,8 @@ class OnetDatabaseSeeder extends Seeder
     public function run(): void
     {
         // Configure a temporary SQLite connection to the source ONET database file
-        $sourcePath = '/home/akoshodi/data/sqlitedbs/onetdb30.db';
+        // Prefer configured path, fallback to legacy hardcoded path
+        $sourcePath = Config::get('database.onet_source_path') ?: '/home/akoshodi/data/sqlitedbs/onetdb30.db';
         if (! file_exists($sourcePath)) {
             $this->command?->error("Source ONET SQLite DB not found at: {$sourcePath}");
             return;
