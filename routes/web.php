@@ -131,6 +131,10 @@ Route::get('/assessments/{attempt}/take', [AssessmentController::class, 'take'])
 Route::post('/assessments/{attempt}/answer', [AssessmentController::class, 'answer'])->name('assessments.answer');
 Route::post('/assessments/{attempt}/complete', [AssessmentController::class, 'complete'])->name('assessments.complete');
 Route::get('/assessments/{attempt}/results', [AssessmentController::class, 'results'])->name('assessments.results');
+// Lightweight export (JSON) for results
+Route::get('/assessments/{attempt}/export', [AssessmentController::class, 'export'])->name('assessments.export');
+// PDF export
+Route::get('/assessments/{attempt}/export/pdf', [AssessmentController::class, 'exportPdf'])->name('assessments.export.pdf');
 
 // Authenticated routes
 Route::middleware(['auth', 'verified'])->group(function () {

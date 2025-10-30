@@ -178,10 +178,20 @@ export default function AssessmentsResults({
                                 <Share2 className="h-4 w-4" />
                                 Share
                             </button>
-                            <button className="flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2 transition-colors hover:bg-white/20">
+                            <Link
+                                href={`/assessments/${attempt.id}/export`}
+                                className="flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2 transition-colors hover:bg-white/20"
+                            >
+                                <Download className="h-4 w-4" />
+                                Export JSON
+                            </Link>
+                            <Link
+                                href={`/assessments/${attempt.id}/export/pdf`}
+                                className="flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2 transition-colors hover:bg-white/20"
+                            >
                                 <Download className="h-4 w-4" />
                                 Download PDF
-                            </button>
+                            </Link>
                         </div>
                     </div>
                 </div>

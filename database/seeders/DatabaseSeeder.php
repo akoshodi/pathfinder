@@ -42,18 +42,39 @@ class DatabaseSeeder extends Seeder
 
         $adminUser->assignRole('super-admin');
 
-        // Seed sample content for public pages if empty
-        $this->call(SampleContentSeeder::class);
+        // Core content seeders
+        $this->call([
+            UniversitySeeder::class,
+            CourseSeeder::class,
+            CompanySeeder::class,
+            ProgramSeeder::class,
+            ResourceSeeder::class,
+            LocationSeeder::class,
+            AlumniAssociationSeeder::class,
+            NotableAlumnusSeeder::class,
+            BlogPostSeeder::class,
+            SponsoredAdSeeder::class,
+            CareerSeeder::class, // legacy careers kept for now
+            SampleContentSeeder::class,
+            LinkSeeder::class,
+            LinkCommentSeeder::class,
+            LinkVoteSeeder::class,
+        ]);
 
-        // Seed link aggregator content
-        $this->call(LinkSeeder::class);
+        // O*NET occupations and related data
+        $this->call(OnetDatabaseSeeder::class);
 
-        // Seed assessments (types and questions)
+        // Assessments (types and questions)
         $this->call([
             AssessmentTypeSeeder::class,
             RiasecQuestionSeeder::class,
             SkillsQuestionSeeder::class,
             PersonalityQuestionSeeder::class,
         ]);
+
+        // Local-only demo data: completed attempt with report
+        if (app()->environment('local')) {
+            $this->call(DemoAssessmentSeeder::class);
+        }
     }
 }

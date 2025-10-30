@@ -14,6 +14,8 @@ class AssessmentType extends Model
         'name',
         'slug',
         'description',
+        'category',
+        'instructions',
         'icon',
         'duration_minutes',
         'question_count',

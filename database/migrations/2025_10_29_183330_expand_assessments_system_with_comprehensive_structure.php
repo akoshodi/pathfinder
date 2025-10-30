@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('name'); // RIASEC, Skills, Personality, Career Fit
             $table->string('slug')->unique();
             $table->text('description');
+            $table->string('category')->nullable(); // career_interest, skills, personality, career_fit
+            $table->text('instructions')->nullable();
             $table->string('icon')->nullable();
             $table->integer('duration_minutes')->default(15);
             $table->integer('question_count')->default(0);

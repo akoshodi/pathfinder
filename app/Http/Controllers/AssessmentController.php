@@ -9,6 +9,7 @@ use App\Models\UserAssessmentResponse;
 use App\Services\Assessment\PersonalityScoringService;
 use App\Services\Assessment\ReportGenerationService;
 use App\Services\Assessment\SkillScoringService;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -364,5 +365,106 @@ class AssessmentController extends Controller
 
         // For other assessments (e.g., RIASEC), we don't persist complex maps; services use question->scoring_map
         return null;
+    }
+
+    /**
+     * Export assessment results as a JSON download (placeholder for future PDF export).
+     */
+    public function export(UserAssessmentAttempt $attempt)
+    {
+        // Verify user can access this attempt
+        if (auth()->check() && $attempt->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        if (! auth()->check() && $attempt->session_id !== request()->session()->getId()) {
+            abort(403);
+        }
+
+        if (! $attempt->isCompleted()) {
+            return redirect()->route('assessments.take', $attempt->id);
+        }
+
+        // Ensure report exists
+        $report = $attempt->report;
+        if (! $report) {
+            $report = (new ReportGenerationService)->generate($attempt);
+        }
+
+        $payload = [
+            'attempt' => [
+                'id' => $attempt->id,
+                'completed_at' => $attempt->completed_at,
+            ],
+            'assessment' => [
+                'name' => $attempt->assessmentType->name,
+                'slug' => $attempt->assessmentType->slug,
+                'category' => $attempt->assessmentType->category,
+            ],
+            'report' => [
+                'summary' => $report->summary,
+                'top_traits' => $report->top_traits,
+                'insights' => (new ReportGenerationService)->generateInsights($attempt),
+                'recommendations' => (new ReportGenerationService)->generateRecommendations($attempt),
+                'visualization_data' => $report->visualization_data,
+            ],
+        ];
+
+        $filename = 'assessment-report-'.$attempt->id.'.json';
+
+        return response()->streamDownload(function () use ($payload) {
+            echo json_encode($payload, JSON_PRETTY_PRINT);
+        }, $filename, [
+            'Content-Type' => 'application/json',
+        ]);
+    }
+
+    /**
+     * Export assessment results as a PDF download.
+     */
+    public function exportPdf(UserAssessmentAttempt $attempt)
+    {
+        // Verify user can access this attempt
+        if (auth()->check() && $attempt->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        if (! auth()->check() && $attempt->session_id !== request()->session()->getId()) {
+            abort(403);
+        }
+
+        if (! $attempt->isCompleted()) {
+            return redirect()->route('assessments.take', $attempt->id);
+        }
+
+        // Ensure report exists
+        $report = $attempt->report;
+        if (! $report) {
+            $report = (new ReportGenerationService)->generate($attempt);
+        }
+
+        // Determine category
+        $assessmentType = $attempt->assessmentType;
+        $category = $assessmentType->category ?? null;
+
+        $riasec = null;
+        if ($category === 'career_interest' && $attempt->riasecScore) {
+            $riasec = [
+                'holland_code' => $attempt->riasecScore->holland_code,
+                'scores' => $attempt->riasecScore->getAllScores(),
+            ];
+        }
+
+        $viewData = [
+            'attempt' => $attempt,
+            'assessment' => $assessmentType,
+            'report' => $report,
+            'category' => $category,
+            'riasec' => $riasec,
+        ];
+
+        $pdf = PDF::loadView('pdf.assessment_report', $viewData)->setPaper('a4');
+
+        return $pdf->download('assessment-report-'.$attempt->id.'.pdf');
     }
 }
