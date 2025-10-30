@@ -17,7 +17,7 @@ class CareerFactory extends Factory
     public function definition(): array
     {
         $title = $this->faker->jobTitle();
-        
+
         return [
             'company_id' => \App\Models\Company::factory(),
             'title' => $title,

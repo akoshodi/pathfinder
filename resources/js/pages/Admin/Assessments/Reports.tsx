@@ -29,7 +29,24 @@ export default function ReportsPage({ filters, reports }: ReportsPageProps) {
     (filters.direction === 'asc' || filters.direction === 'desc') ? (filters.direction as any) : 'desc'
   )
 
-  const rows = reports.data
+  const rows = Array.isArray(reports?.data) ? reports.data : []
+
+  const buildQuery = (extra?: Record<string, string | number>): string => {
+    const qs = new URLSearchParams()
+    if (type) qs.append('type', type)
+    if (search) qs.append('search', search)
+    if (sort) qs.append('sort', sort)
+    if (direction) qs.append('direction', direction)
+    if (extra) {
+      Object.entries(extra).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && String(v).length > 0) {
+          qs.append(k, String(v))
+        }
+      })
+    }
+    const s = qs.toString()
+    return s ? `?${s}` : ''
+  }
 
   const onFilter = () => {
     const qs = new URLSearchParams()
@@ -59,17 +76,14 @@ export default function ReportsPage({ filters, reports }: ReportsPageProps) {
     setTimeout(onFilter, 0)
   }
 
-  const exportCsvHref = `/admin/assessments/reports/export?${new URLSearchParams({
-    ...(type ? { type } : {}),
-    ...(search ? { search } : {}),
-    ...(sort ? { sort } : {}),
-    ...(direction ? { direction } : {}),
-  }).toString()}`
+  const exportCsvHref = `/admin/assessments/reports/export${buildQuery()}`
 
   const pager = useMemo(() => {
     const pages: number[] = []
-    const start = Math.max(1, reports.current_page - 2)
-    const end = Math.min(reports.last_page, reports.current_page + 2)
+    const current = reports?.current_page ?? 1
+    const last = reports?.last_page ?? 1
+    const start = Math.max(1, current - 2)
+    const end = Math.min(last, current + 2)
     for (let i = start; i <= end; i++) pages.push(i)
     return pages
   }, [reports])
@@ -142,18 +156,24 @@ export default function ReportsPage({ filters, reports }: ReportsPageProps) {
 
       <div className="mt-4 flex items-center justify-between text-sm">
         <div>
-          Showing {(reports.current_page - 1) * reports.per_page + 1} -
-          {Math.min(reports.current_page * reports.per_page, reports.total)} of {reports.total}
+          {(() => {
+            const current = reports?.current_page ?? 1
+            const perPage = reports?.per_page ?? 0
+            const total = reports?.total ?? 0
+            const start = total > 0 ? (current - 1) * perPage + 1 : 0
+            const end = Math.min(current * perPage, total)
+            return (
+              <span>
+                Showing {start} - {end} of {total}
+              </span>
+            )
+          })()}
         </div>
         <div className="flex items-center gap-2">
-          {reports.current_page > 1 && (
+          {(reports?.current_page ?? 1) > 1 && (
             <Link
               className="rounded border px-2 py-1"
-              href={`/admin/assessments/reports?${new URLSearchParams({
-                ...(type ? { type } : {}),
-                ...(search ? { search } : {}),
-                page: String(reports.current_page - 1),
-              }).toString()}`}
+              href={`/admin/assessments/reports${buildQuery({ page: String((reports?.current_page ?? 1) - 1) })}`}
               preserveScroll
               preserveState
             >
@@ -164,27 +184,19 @@ export default function ReportsPage({ filters, reports }: ReportsPageProps) {
             <Link
               key={p}
               className={
-                'rounded border px-2 py-1 ' + (p === reports.current_page ? 'bg-blue-600 text-white' : '')
+                'rounded border px-2 py-1 ' + (p === (reports?.current_page ?? 1) ? 'bg-blue-600 text-white' : '')
               }
-              href={`/admin/assessments/reports?${new URLSearchParams({
-                ...(type ? { type } : {}),
-                ...(search ? { search } : {}),
-                page: String(p),
-              }).toString()}`}
+              href={`/admin/assessments/reports${buildQuery({ page: String(p) })}`}
               preserveScroll
               preserveState
             >
               {p}
             </Link>
           ))}
-          {reports.current_page < reports.last_page && (
+          {(reports?.current_page ?? 1) < (reports?.last_page ?? 1) && (
             <Link
               className="rounded border px-2 py-1"
-              href={`/admin/assessments/reports?${new URLSearchParams({
-                ...(type ? { type } : {}),
-                ...(search ? { search } : {}),
-                page: String(reports.current_page + 1),
-              }).toString()}`}
+              href={`/admin/assessments/reports${buildQuery({ page: String((reports?.current_page ?? 1) + 1) })}`}
               preserveScroll
               preserveState
             >

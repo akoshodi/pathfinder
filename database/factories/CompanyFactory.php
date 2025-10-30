@@ -17,7 +17,7 @@ class CompanyFactory extends Factory
     public function definition(): array
     {
         $name = $this->faker->company();
-        
+
         return [
             'name' => $name,
             'slug' => \Illuminate\Support\Str::slug($name).'-'.$this->faker->unique()->numberBetween(1000, 9999),

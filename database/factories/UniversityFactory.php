@@ -16,12 +16,12 @@ class UniversityFactory extends Factory
      */
     public function definition(): array
     {
-        $name = fake()->company() . ' University';
+        $name = fake()->company().' University';
 
         return [
             'name' => $name,
             'slug' => \Illuminate\Support\Str::slug($name),
-            'location' => fake()->city() . ', ' . fake()->stateAbbr(),
+            'location' => fake()->city().', '.fake()->stateAbbr(),
             'city' => fake()->city(),
             'state' => fake()->stateAbbr(),
             'country' => 'United States',

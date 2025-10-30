@@ -17,7 +17,7 @@ class ProgramFactory extends Factory
     public function definition(): array
     {
         $name = $this->faker->words(3, true).' Program';
-        
+
         return [
             'name' => ucwords($name),
             'slug' => \Illuminate\Support\Str::slug($name).'-'.$this->faker->unique()->numberBetween(1000, 9999),

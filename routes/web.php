@@ -136,6 +136,12 @@ Route::get('/assessments/{attempt}/export', [AssessmentController::class, 'expor
 // PDF export
 Route::get('/assessments/{attempt}/export/pdf', [AssessmentController::class, 'exportPdf'])->name('assessments.export.pdf');
 
+// Career Fit Analysis (requires auth and completed assessments)
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/career-fit', [AssessmentController::class, 'careerFit'])->name('assessments.career-fit');
+    Route::get('/career-fit/export/pdf', [AssessmentController::class, 'careerFitPdf'])->name('assessments.career-fit.pdf');
+});
+
 // Authenticated routes
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {

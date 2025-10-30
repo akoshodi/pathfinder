@@ -47,36 +47,42 @@ export default function AssessmentsTake({
     questions,
     responses,
 }: Props) {
+    const hasQuestions = Array.isArray(questions) && questions.length > 0;
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [answers, setAnswers] = useState<{ [key: number]: number }>({});
     const [loading, setLoading] = useState(false);
     const [questionStartTime, setQuestionStartTime] = useState(Date.now());
 
-    const currentQuestion = questions[currentQuestionIndex];
-    const progress = (
-        (Object.keys(answers).length / questions.length) *
-        100
-    ).toFixed(0);
+    const currentQuestion = hasQuestions ? questions[currentQuestionIndex] : undefined;
+    const progress = hasQuestions
+        ? ((Object.keys(answers).length / questions.length) * 100).toFixed(0)
+        : '0';
 
     // Load existing responses
     useEffect(() => {
         const existingAnswers: { [key: number]: number } = {};
-        Object.values(responses).forEach((response) => {
+        Object.values(responses ?? {}).forEach((response) => {
             existingAnswers[response.question_id] = response.response_value;
         });
         setAnswers(existingAnswers);
 
         // Find first unanswered question
-        for (let i = 0; i < questions.length; i++) {
-            if (!existingAnswers[questions[i].id]) {
-                setCurrentQuestionIndex(i);
-                break;
+        if (hasQuestions) {
+            for (let i = 0; i < questions.length; i++) {
+                if (!existingAnswers[questions[i].id]) {
+                    setCurrentQuestionIndex(i);
+                    break;
+                }
             }
         }
     }, []);
 
     const handleAnswer = async (value: number) => {
         const timeSpent = Math.floor((Date.now() - questionStartTime) / 1000);
+
+        if (!currentQuestion) {
+            return;
+        }
 
         setAnswers((prev) => ({ ...prev, [currentQuestion.id]: value }));
 
@@ -103,7 +109,7 @@ export default function AssessmentsTake({
     };
 
     const handleNext = () => {
-        if (currentQuestionIndex < questions.length - 1) {
+        if (hasQuestions && currentQuestionIndex < questions.length - 1) {
             setCurrentQuestionIndex((prev) => prev + 1);
             setQuestionStartTime(Date.now());
         }
@@ -117,7 +123,7 @@ export default function AssessmentsTake({
     };
 
     const handleComplete = async () => {
-        const unanswered = questions.filter((q) => !answers[q.id]);
+    const unanswered = hasQuestions ? questions.filter((q) => !answers[q.id]) : [];
 
         if (unanswered.length > 0) {
             if (
@@ -138,7 +144,7 @@ export default function AssessmentsTake({
     };
 
     const isCurrentQuestionAnswered = () => {
-        return !!answers[currentQuestion.id];
+        return currentQuestion ? !!answers[currentQuestion.id] : false;
     };
 
     return (
@@ -146,6 +152,14 @@ export default function AssessmentsTake({
             <Head title={`${assessment.name} - Assessment`} />
 
             <div className="min-h-screen bg-gray-50">
+                {!hasQuestions && (
+                    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+                        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-6">
+                            <h2 className="mb-2 text-lg font-semibold text-yellow-900">No questions available</h2>
+                            <p className="text-yellow-800">This assessment does not have any questions yet. Please try again later.</p>
+                        </div>
+                    </div>
+                )}
                 {/* Progress Bar */}
                 <div className="sticky top-0 z-10 border-b border-gray-200 bg-white">
                     <div className="mx-auto max-w-4xl px-4 py-4 sm:px-6 lg:px-8">
@@ -154,7 +168,7 @@ export default function AssessmentsTake({
                                 {assessment.name}
                             </h1>
                             <span className="text-sm text-gray-600">
-                                {getAnsweredCount()} / {questions.length}{' '}
+                                {getAnsweredCount()} / {hasQuestions ? questions.length : 0}{' '}
                                 answered
                             </span>
                         </div>
@@ -169,7 +183,7 @@ export default function AssessmentsTake({
 
                 <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
                     {/* Instructions (show on first question) */}
-                    {currentQuestionIndex === 0 && (
+                    {hasQuestions && currentQuestionIndex === 0 && (
                         <div className="mb-8 rounded-lg border border-blue-200 bg-blue-50 p-6">
                             <h2 className="mb-2 text-lg font-semibold text-blue-900">
                                 Instructions
@@ -181,6 +195,7 @@ export default function AssessmentsTake({
                     )}
 
                     {/* Question Card */}
+                    {hasQuestions && currentQuestion && (
                     <div className="mb-6 rounded-lg bg-white p-8 shadow-lg">
                         <div className="mb-6">
                             <div className="mb-4 flex items-center justify-between">
@@ -236,6 +251,7 @@ export default function AssessmentsTake({
                             })}
                         </div>
                     </div>
+                    )}
 
                     {/* Navigation */}
                     <div className="flex items-center justify-between">
@@ -252,7 +268,7 @@ export default function AssessmentsTake({
                             Previous
                         </button>
 
-                        {currentQuestionIndex === questions.length - 1 ? (
+                        {hasQuestions && currentQuestionIndex === questions.length - 1 ? (
                             <button
                                 onClick={handleComplete}
                                 disabled={loading}
@@ -273,9 +289,9 @@ export default function AssessmentsTake({
                         ) : (
                             <button
                                 onClick={handleNext}
-                                disabled={!isCurrentQuestionAnswered()}
+                                disabled={!hasQuestions || !isCurrentQuestionAnswered()}
                                 className={`flex items-center gap-2 rounded-lg px-6 py-3 font-medium transition-colors ${
-                                    isCurrentQuestionAnswered()
+                                    hasQuestions && isCurrentQuestionAnswered()
                                         ? 'bg-indigo-600 text-white hover:bg-indigo-700'
                                         : 'cursor-not-allowed bg-gray-100 text-gray-400'
                                 }`}
@@ -287,6 +303,7 @@ export default function AssessmentsTake({
                     </div>
 
                     {/* Question Grid Navigation */}
+                    {hasQuestions && (
                     <div className="mt-8 rounded-lg bg-white p-6 shadow">
                         <h3 className="mb-4 text-sm font-semibold text-gray-900">
                             Question Overview
@@ -333,6 +350,7 @@ export default function AssessmentsTake({
                             </div>
                         </div>
                     </div>
+                    )}
                 </main>
             </div>
         </PublicLayout>

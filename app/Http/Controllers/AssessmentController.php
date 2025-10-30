@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Assessments\CompleteAssessmentRequest;
+use App\Http\Requests\Assessments\StartAssessmentRequest;
+use App\Http\Requests\Assessments\StoreAssessmentAnswerRequest;
 use App\Models\AssessmentQuestion;
 use App\Models\AssessmentType;
 use App\Models\UserAssessmentAttempt;
@@ -12,7 +15,6 @@ use App\Services\Assessment\SkillScoringService;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
@@ -58,7 +60,7 @@ class AssessmentController extends Controller
     /**
      * Start a new assessment attempt
      */
-    public function start(Request $request, string $slug): RedirectResponse
+    public function start(StartAssessmentRequest $request, string $slug): RedirectResponse
     {
         $assessmentType = AssessmentType::where('slug', $slug)
             ->where('is_active', true)
@@ -148,7 +150,7 @@ class AssessmentController extends Controller
     /**
      * Save assessment response
      */
-    public function answer(Request $request, UserAssessmentAttempt $attempt): JsonResponse
+    public function answer(StoreAssessmentAnswerRequest $request, UserAssessmentAttempt $attempt): JsonResponse
     {
         // Verify user can access this attempt
         if (auth()->check() && $attempt->user_id !== auth()->id()) {
@@ -159,11 +161,7 @@ class AssessmentController extends Controller
             abort(403);
         }
 
-        $validated = $request->validate([
-            'question_id' => 'required|exists:assessment_questions,id',
-            'response_value' => 'required',
-            'time_spent' => 'nullable|integer',
-        ]);
+        $validated = $request->validated();
 
         $question = AssessmentQuestion::findOrFail($validated['question_id']);
 
@@ -193,7 +191,7 @@ class AssessmentController extends Controller
     /**
      * Complete assessment and generate report
      */
-    public function complete(UserAssessmentAttempt $attempt): RedirectResponse
+    public function complete(CompleteAssessmentRequest $request, UserAssessmentAttempt $attempt): RedirectResponse
     {
         // Verify user can access this attempt
         if (auth()->check() && $attempt->user_id !== auth()->id()) {
@@ -497,5 +495,98 @@ class AssessmentController extends Controller
         }
 
         abort(503, 'PDF export is not currently available.');
+    }
+
+    /**
+     * Display comprehensive career fit analysis
+     */
+    public function careerFit(): InertiaResponse
+    {
+        $user = auth()->user();
+
+        $careerFitService = new \App\Services\Assessment\CareerFitAnalysisService(
+            new \App\Services\Assessment\CareerMatchingService
+        );
+
+        // Check if user has completed all required assessments
+        if (! $careerFitService->hasCompletedAllAssessments($user)) {
+            return Inertia::render('Assessments/CareerFit', [
+                'hasRequiredAssessments' => false,
+                'requiredAssessments' => [
+                    'riasec' => $this->getAssessmentStatus($user, 'riasec'),
+                    'skills' => $this->getAssessmentStatus($user, 'skills'),
+                    'personality' => $this->getAssessmentStatus($user, 'personality'),
+                ],
+            ]);
+        }
+
+        // Generate comprehensive analysis
+        try {
+            $analysis = $careerFitService->analyzeCareerFit($user);
+
+            return Inertia::render('Assessments/CareerFit', [
+                'hasRequiredAssessments' => true,
+                'analysis' => $analysis,
+            ]);
+        } catch (\Exception $e) {
+            return Inertia::render('Assessments/CareerFit', [
+                'hasRequiredAssessments' => false,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Export comprehensive career fit analysis as PDF
+     */
+    public function careerFitPdf(): SymfonyResponse
+    {
+        $user = auth()->user();
+
+        $careerFitService = new \App\Services\Assessment\CareerFitAnalysisService(
+            new \App\Services\Assessment\CareerMatchingService
+        );
+
+        if (! $careerFitService->hasCompletedAllAssessments($user)) {
+            abort(400, 'Please complete all required assessments (RIASEC, Skills, Personality) first.');
+        }
+
+        $pdfService = new \App\Services\Assessment\ComprehensivePdfService($careerFitService);
+
+        try {
+            $path = $pdfService->generateCareerFitPdf($user->id);
+
+            return response()->download(
+                storage_path('app/public/'.$path),
+                'career-fit-analysis-'.now()->format('Y-m-d').'.pdf'
+            );
+        } catch (\Exception $e) {
+            abort(500, 'Failed to generate PDF: '.$e->getMessage());
+        }
+    }
+
+    /**
+     * Get assessment status for a user
+     */
+    protected function getAssessmentStatus($user, string $slug): array
+    {
+        $assessmentType = AssessmentType::where('slug', $slug)->first();
+
+        if (! $assessmentType) {
+            return ['completed' => false, 'name' => ucfirst($slug)];
+        }
+
+        $latestAttempt = UserAssessmentAttempt::where('user_id', $user->id)
+            ->where('assessment_type_id', $assessmentType->id)
+            ->whereNotNull('completed_at')
+            ->latest('completed_at')
+            ->first();
+
+        return [
+            'completed' => (bool) $latestAttempt,
+            'name' => $assessmentType->name,
+            'slug' => $assessmentType->slug,
+            'completed_at' => $latestAttempt?->completed_at,
+        ];
     }
 }

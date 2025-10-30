@@ -17,7 +17,7 @@ class CourseFactory extends Factory
     public function definition(): array
     {
         $title = $this->faker->catchPhrase().' Course';
-        
+
         return [
             'title' => $title,
             'slug' => \Illuminate\Support\Str::slug($title).'-'.$this->faker->unique()->numberBetween(1000, 9999),

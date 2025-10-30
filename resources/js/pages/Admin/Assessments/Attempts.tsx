@@ -30,7 +30,24 @@ export default function AttemptsPage({ filters, attempts }: AttemptsPageProps) {
     (filters.direction === 'asc' || filters.direction === 'desc') ? (filters.direction as any) : 'desc'
   )
 
-  const rows = attempts.data
+  const rows = Array.isArray(attempts?.data) ? attempts.data : []
+
+  const buildQuery = (extra?: Record<string, string | number>): string => {
+    const qs = new URLSearchParams()
+    if (status) qs.append('status', status)
+    if (search) qs.append('search', search)
+    if (sort) qs.append('sort', sort)
+    if (direction) qs.append('direction', direction)
+    if (extra) {
+      Object.entries(extra).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && String(v).length > 0) {
+          qs.append(k, String(v))
+        }
+      })
+    }
+    const s = qs.toString()
+    return s ? `?${s}` : ''
+  }
 
   const onFilter = () => {
     const qs = new URLSearchParams()
@@ -60,17 +77,14 @@ export default function AttemptsPage({ filters, attempts }: AttemptsPageProps) {
     setTimeout(onFilter, 0)
   }
 
-  const exportCsvHref = `/admin/assessments/attempts/export?${new URLSearchParams({
-    ...(status ? { status } : {}),
-    ...(search ? { search } : {}),
-    ...(sort ? { sort } : {}),
-    ...(direction ? { direction } : {}),
-  }).toString()}`
+  const exportCsvHref = `/admin/assessments/attempts/export${buildQuery()}`
 
   const pager = useMemo(() => {
     const pages: number[] = []
-    const start = Math.max(1, attempts.current_page - 2)
-    const end = Math.min(attempts.last_page, attempts.current_page + 2)
+    const current = attempts?.current_page ?? 1
+    const last = attempts?.last_page ?? 1
+    const start = Math.max(1, current - 2)
+    const end = Math.min(last, current + 2)
     for (let i = start; i <= end; i++) pages.push(i)
     return pages
   }, [attempts])
@@ -107,24 +121,22 @@ export default function AttemptsPage({ filters, attempts }: AttemptsPageProps) {
           Reset
         </button>
         <a href={exportCsvHref} className="rounded bg-green-600 px-3 py-2 text-white">Export CSV</a>
-                  <th className="px-4 py-2 text-left text-sm font-semibold">Assessment</th>
-                  <th className="px-4 py-2 text-left text-sm font-semibold">User</th>
-                  <th className="px-4 py-2 text-left text-sm font-semibold cursor-pointer" onClick={() => toggleSort('started_at')}>
-                    Started {sort === 'started_at' ? (direction === 'asc' ? '▲' : '▼') : ''}
-                  </th>
-                  <th className="px-4 py-2 text-left text-sm font-semibold cursor-pointer" onClick={() => toggleSort('completed_at')}>
-                    Completed {sort === 'completed_at' ? (direction === 'asc' ? '▲' : '▼') : ''}
-                  </th>
-                  <th className="px-4 py-2 text-left text-sm font-semibold">Progress</th>
+      </div>
+
+      <div className="overflow-x-auto rounded border">
         <table className="min-w-full divide-y">
           <thead className="bg-gray-50">
             <tr>
               <th className="px-4 py-2 text-left text-sm font-semibold">User</th>
               <th className="px-4 py-2 text-left text-sm font-semibold">Assessment</th>
               <th className="px-4 py-2 text-left text-sm font-semibold">Status</th>
+              <th className="px-4 py-2 text-left text-sm font-semibold cursor-pointer" onClick={() => toggleSort('started_at')}>
+                Started {sort === 'started_at' ? (direction === 'asc' ? '▲' : '▼') : ''}
+              </th>
+              <th className="px-4 py-2 text-left text-sm font-semibold cursor-pointer" onClick={() => toggleSort('completed_at')}>
+                Completed {sort === 'completed_at' ? (direction === 'asc' ? '▲' : '▼') : ''}
+              </th>
               <th className="px-4 py-2 text-left text-sm font-semibold">Progress</th>
-              <th className="px-4 py-2 text-left text-sm font-semibold">Started</th>
-              <th className="px-4 py-2 text-left text-sm font-semibold">Completed</th>
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -153,9 +165,9 @@ export default function AttemptsPage({ filters, attempts }: AttemptsPageProps) {
                     )
                   })()}
                 </td>
-                <td className="px-4 py-2 text-sm">{typeof row.progress === 'number' ? `${row.progress}%` : '-'}</td>
                 <td className="px-4 py-2 text-sm">{row.started_at ?? '-'}</td>
                 <td className="px-4 py-2 text-sm">{row.completed_at ?? '-'}</td>
+                <td className="px-4 py-2 text-sm">{typeof row.progress === 'number' ? `${row.progress}%` : '-'}</td>
               </tr>
             ))}
           </tbody>
@@ -164,18 +176,24 @@ export default function AttemptsPage({ filters, attempts }: AttemptsPageProps) {
 
       <div className="mt-4 flex items-center justify-between text-sm">
         <div>
-          Showing {(attempts.current_page - 1) * attempts.per_page + 1} -
-          {Math.min(attempts.current_page * attempts.per_page, attempts.total)} of {attempts.total}
+          {(() => {
+            const current = attempts?.current_page ?? 1
+            const perPage = attempts?.per_page ?? 0
+            const total = attempts?.total ?? 0
+            const start = total > 0 ? (current - 1) * perPage + 1 : 0
+            const end = Math.min(current * perPage, total)
+            return (
+              <span>
+                Showing {start} - {end} of {total}
+              </span>
+            )
+          })()}
         </div>
         <div className="flex items-center gap-2">
-          {attempts.current_page > 1 && (
+          {(attempts?.current_page ?? 1) > 1 && (
             <Link
               className="rounded border px-2 py-1"
-              href={`/admin/assessments/attempts?${new URLSearchParams({
-                ...(status ? { status } : {}),
-                ...(search ? { search } : {}),
-                page: String(attempts.current_page - 1),
-              }).toString()}`}
+              href={`/admin/assessments/attempts${buildQuery({ page: String((attempts?.current_page ?? 1) - 1) })}`}
               preserveScroll
               preserveState
             >
@@ -186,27 +204,19 @@ export default function AttemptsPage({ filters, attempts }: AttemptsPageProps) {
             <Link
               key={p}
               className={
-                'rounded border px-2 py-1 ' + (p === attempts.current_page ? 'bg-blue-600 text-white' : '')
+                'rounded border px-2 py-1 ' + (p === (attempts?.current_page ?? 1) ? 'bg-blue-600 text-white' : '')
               }
-              href={`/admin/assessments/attempts?${new URLSearchParams({
-                ...(status ? { status } : {}),
-                ...(search ? { search } : {}),
-                page: String(p),
-              }).toString()}`}
+              href={`/admin/assessments/attempts${buildQuery({ page: String(p) })}`}
               preserveScroll
               preserveState
             >
               {p}
             </Link>
           ))}
-          {attempts.current_page < attempts.last_page && (
+          {(attempts?.current_page ?? 1) < (attempts?.last_page ?? 1) && (
             <Link
               className="rounded border px-2 py-1"
-              href={`/admin/assessments/attempts?${new URLSearchParams({
-                ...(status ? { status } : {}),
-                ...(search ? { search } : {}),
-                page: String(attempts.current_page + 1),
-              }).toString()}`}
+              href={`/admin/assessments/attempts${buildQuery({ page: String((attempts?.current_page ?? 1) + 1) })}`}
               preserveScroll
               preserveState
             >

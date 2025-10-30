@@ -17,7 +17,7 @@ class MarketplaceItemFactory extends Factory
     public function definition(): array
     {
         $title = $this->faker->words(3, true);
-        
+
         return [
             'user_id' => \App\Models\User::factory(),
             'title' => ucfirst($title),

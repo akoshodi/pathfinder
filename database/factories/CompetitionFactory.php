@@ -17,7 +17,7 @@ class CompetitionFactory extends Factory
     public function definition(): array
     {
         $title = $this->faker->words(3, true).' Competition';
-        
+
         return [
             'title' => ucwords($title),
             'slug' => \Illuminate\Support\Str::slug($title).'-'.$this->faker->unique()->numberBetween(1000, 9999),

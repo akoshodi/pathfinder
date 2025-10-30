@@ -17,7 +17,7 @@ class OnetOccupationFactory extends Factory
     public function definition(): array
     {
         $code = $this->faker->numerify('##-####.##');
-        
+
         return [
             'onetsoc_code' => $code,
             'title' => $this->faker->jobTitle(),

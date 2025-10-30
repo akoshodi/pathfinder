@@ -68,8 +68,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AssessmentTypeSeeder::class,
             RiasecQuestionSeeder::class,
-            SkillsQuestionSeeder::class,
-            PersonalityQuestionSeeder::class,
+            SkillsAssessmentSeeder::class,
+            PersonalityAssessmentSeeder::class,
         ]);
 
         // Local-only demo data: completed attempt with report
