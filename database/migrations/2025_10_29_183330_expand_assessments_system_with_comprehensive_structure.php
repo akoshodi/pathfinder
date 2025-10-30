@@ -109,7 +109,10 @@ return new class extends Migration
             $table->integer('rank')->default(1); // 1 = top match
             $table->timestamps();
 
-            $table->foreign('onetsoc_code')->references('onetsoc_code')->on('onet_occupation_data');
+            // In some environments (tests/CI), ONET tables may not be present; add FK only when available
+            if (\Illuminate\Support\Facades\Schema::hasTable('onet_occupation_data')) {
+                $table->foreign('onetsoc_code')->references('onetsoc_code')->on('onet_occupation_data');
+            }
             $table->index(['report_id', 'rank']);
         });
 

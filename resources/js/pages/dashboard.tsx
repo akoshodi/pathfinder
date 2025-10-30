@@ -10,6 +10,24 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+interface AdminAssessmentSummary {
+    id: number;
+    name: string;
+    slug: string;
+    category?: string | null;
+    attempts: number;
+    completed: number;
+    completion_rate: number;
+}
+
+interface AdminRecentAttempt {
+    id: number;
+    assessment: { name?: string | null; slug?: string | null };
+    user: { id: number; name: string; email: string } | null;
+    started_at: string | null;
+    completed_at: string | null;
+}
+
 interface Props {
     user: {
         name: string;
@@ -22,9 +40,30 @@ interface Props {
         assessments_completed: number;
         comparison_items: number;
     };
+    isAdmin?: boolean;
+    admin?: {
+        totals: {
+            users: number;
+            assessment_attempts: number;
+            assessments_completed: number;
+            reports: number;
+            occupations: number;
+        };
+        assessments: AdminAssessmentSummary[];
+        recentAttempts: AdminRecentAttempt[];
+    } | null;
+    recent?: {
+        attempt: { id: number; progress: number; started_at: string | null };
+        assessment: { name?: string | null; slug?: string | null };
+    } | null;
+    recentResult?: {
+        attempt: { id: number; completed_at: string | null };
+        assessment: { name?: string | null; slug?: string | null };
+        summary?: string | null;
+    } | null;
 }
 
-export default function Dashboard({ user, stats }: Props) {
+export default function Dashboard({ user, stats, isAdmin = false, admin = null, recent = null, recentResult = null }: Props) {
     const quickLinks = [
         {
             title: 'Browse Universities',
@@ -159,8 +198,128 @@ export default function Dashboard({ user, stats }: Props) {
                     </div>
                 </div>
 
+                {/* Admin Panel */}
+                {isAdmin && admin && (
+                    <div className="grid grid-cols-1 gap-6">
+                        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Admin Overview</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                                <AdminStatCard label="Users" value={admin.totals.users} emoji="👥" />
+                                <AdminStatCard label="Attempts" value={admin.totals.assessment_attempts} emoji="📝" />
+                                <AdminStatCard label="Completed" value={admin.totals.assessments_completed} emoji="✅" />
+                                <AdminStatCard label="Reports" value={admin.totals.reports} emoji="📄" />
+                                <AdminStatCard label="Occupations" value={admin.totals.occupations} emoji="🏷️" />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {/* Assessments summary */}
+                            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Assessments</h3>
+                                <div className="overflow-x-auto">
+                                    <table className="min-w-full text-sm">
+                                        <thead>
+                                            <tr className="text-left text-gray-600 dark:text-gray-400">
+                                                <th className="py-2 pr-4">Name</th>
+                                                <th className="py-2 pr-4">Category</th>
+                                                <th className="py-2 pr-4">Attempts</th>
+                                                <th className="py-2 pr-4">Completed</th>
+                                                <th className="py-2 pr-4">Completion Rate</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                                            {admin.assessments.map((a) => (
+                                                <tr key={a.id} className="text-gray-900 dark:text-white">
+                                                    <td className="py-2 pr-4 font-medium">{a.name}</td>
+                                                    <td className="py-2 pr-4">{a.category ?? '-'}</td>
+                                                    <td className="py-2 pr-4">{a.attempts}</td>
+                                                    <td className="py-2 pr-4">{a.completed}</td>
+                                                    <td className="py-2 pr-4">{a.completion_rate}%</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {/* Recent attempts */}
+                            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Recent Attempts</h3>
+                                <div className="space-y-3">
+                                    {admin.recentAttempts.map((ra) => (
+                                        <div key={ra.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-700">
+                                            <div>
+                                                <div className="font-medium text-gray-900 dark:text-white">
+                                                    {ra.assessment.name ?? 'Unknown'}
+                                                </div>
+                                                <div className="text-xs text-gray-600 dark:text-gray-400">
+                                                    {ra.user ? `${ra.user.name} · ${ra.user.email}` : 'Anonymous'}
+                                                </div>
+                                            </div>
+                                            <div className="text-xs text-gray-600 dark:text-gray-400">
+                                                {ra.completed_at ? 'Completed' : 'In Progress'}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="mt-4 flex flex-wrap gap-2 text-sm">
+                                    <Link href="/assessments" className="text-indigo-600 hover:text-indigo-700">Manage Assessments</Link>
+                                    <span className="text-gray-300">|</span>
+                                    <Link href="/occupations" className="text-indigo-600 hover:text-indigo-700">Browse Occupations</Link>
+                                    <span className="text-gray-300">|</span>
+                                    <Link href="/blog" className="text-indigo-600 hover:text-indigo-700">Manage Blog</Link>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Recent Activity / Recommendations */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Resume Recent Attempt / Recent Result */}
+                    {!isAdmin && (
+                        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Your Recent Activity</h3>
+                            <div className="space-y-4">
+                                {recent && (
+                                    <Link
+                                        href={`/assessments/${recent.attempt.id}/take`}
+                                        className="flex items-center justify-between p-4 rounded-lg bg-indigo-50 dark:bg-indigo-900/40 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900 transition-colors"
+                                    >
+                                        <div>
+                                            <div className="text-sm text-indigo-700 dark:text-indigo-300">Resume Assessment</div>
+                                            <div className="font-semibold text-indigo-900 dark:text-indigo-100">{recent.assessment.name ?? 'Assessment'}</div>
+                                        </div>
+                                        <div className="text-sm text-indigo-800 dark:text-indigo-200">{recent.attempt.progress}%</div>
+                                    </Link>
+                                )}
+
+                                {recentResult && (
+                                    <Link
+                                        href={`/assessments/${recentResult.attempt.id}/results`}
+                                        className="flex items-center justify-between p-4 rounded-lg bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900 transition-colors"
+                                    >
+                                        <div>
+                                            <div className="text-sm text-green-700 dark:text-green-300">Recent Result</div>
+                                            <div className="font-semibold text-green-900 dark:text-green-100">{recentResult.assessment.name ?? 'Assessment'}</div>
+                                            {recentResult.summary && (
+                                                <div className="mt-1 text-xs text-green-800/80 dark:text-green-200/80 line-clamp-2">
+                                                    {recentResult.summary}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="text-xs text-green-800 dark:text-green-200">View</div>
+                                    </Link>
+                                )}
+
+                                {!recent && !recentResult && (
+                                    <div className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-400">
+                                        No recent activity yet. Start with a career assessment to get personalized insights.
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                     {/* Next Steps */}
                     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
                         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Recommended Next Steps</h3>
@@ -258,5 +417,17 @@ export default function Dashboard({ user, stats }: Props) {
                 </div>
             </div>
         </AppLayout>
+    );
+}
+
+function AdminStatCard({ label, value, emoji }: { label: string; value: number; emoji: string }) {
+    return (
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-600 dark:text-gray-400">{label}</div>
+                <div className="text-xl">{emoji}</div>
+            </div>
+            <div className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{value}</div>
+        </div>
     );
 }

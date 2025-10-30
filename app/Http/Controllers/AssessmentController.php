@@ -13,11 +13,10 @@ use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use Inertia\Inertia;
 
 class AssessmentController extends Controller
 {
@@ -92,7 +91,7 @@ class AssessmentController extends Controller
     /**
      * Display assessment questions
      */
-    public function take(UserAssessmentAttempt $attempt): SymfonyResponse
+    public function take(UserAssessmentAttempt $attempt): InertiaResponse
     {
         // Verify user can access this attempt
         if (auth()->check() && $attempt->user_id !== auth()->id()) {
@@ -224,7 +223,7 @@ class AssessmentController extends Controller
     /**
      * Display assessment results
      */
-    public function results(UserAssessmentAttempt $attempt): SymfonyResponse
+    public function results(UserAssessmentAttempt $attempt): InertiaResponse
     {
         // Verify user can access this attempt
         if (auth()->check() && $attempt->user_id !== auth()->id()) {
@@ -453,11 +452,6 @@ class AssessmentController extends Controller
         $assessmentType = $attempt->assessmentType;
         $category = $assessmentType->category ?? null;
 
-        // Graceful handling if PDF package is not installed
-        if (! class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
-            abort(503, 'PDF export is not currently available.');
-        }
-
         $riasec = null;
         if ($category === 'career_interest' && $attempt->riasecScore) {
             $riasec = [
@@ -474,8 +468,34 @@ class AssessmentController extends Controller
             'riasec' => $riasec,
         ];
 
-        $pdf = PDF::loadView('pdf.assessment_report', $viewData)->setPaper('a4');
+        // Try DomPDF first if available
+        if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
+            try {
+                $pdf = PDF::loadView('pdf.assessment_report', $viewData)->setPaper('a4');
 
-        return $pdf->download('assessment-report-'.$attempt->id.'.pdf');
+                return $pdf->download('assessment-report-'.$attempt->id.'.pdf');
+            } catch (\Throwable $e) {
+                // Fall through to alternate engine
+            }
+        }
+
+        // Fallback: Spatie Browsershot (if installed)
+        if (class_exists(\Spatie\Browsershot\Browsershot::class)) {
+            $html = view('pdf.assessment_report', $viewData)->render();
+            try {
+                $binary = \Spatie\Browsershot\Browsershot::html($html)
+                    ->format('A4')
+                    ->pdf();
+
+                return response($binary, 200, [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => 'attachment; filename="assessment-report-'.$attempt->id.'.pdf"',
+                ]);
+            } catch (\Throwable $e) {
+                // Continue to final error
+            }
+        }
+
+        abort(503, 'PDF export is not currently available.');
     }
 }

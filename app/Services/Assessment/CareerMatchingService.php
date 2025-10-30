@@ -7,6 +7,7 @@ use App\Models\CareerRecommendation;
 use App\Models\RiasecScore;
 use App\Models\UserAssessmentAttempt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class CareerMatchingService
 {
@@ -15,6 +16,10 @@ class CareerMatchingService
      */
     public function matchCareersFromRiasec(RiasecScore $riasecScore, AssessmentReport $report, int $limit = 10): array
     {
+        // If ONET tables are not available (e.g., in isolated tests), skip matching gracefully
+        if (! Schema::hasTable('onet_interests') || ! Schema::hasTable('onet_occupation_data') || ! Schema::hasTable('onet_content_model_reference')) {
+            return [];
+        }
         $hollandCode = $riasecScore->holland_code;
         $primaryCode = $riasecScore->primary_code;
 
@@ -88,7 +93,22 @@ class CareerMatchingService
             $normalizedScore = min(95, $normalizedScore * 1.1);
         }
 
-        return round($normalizedScore, 2);
+        // Integrate Abilities: incorporate average importance of top abilities for the occupation
+        // This provides a secondary signal beyond interests
+        $abilityAvg = null;
+        if (Schema::hasTable('onet_abilities')) {
+            $abilityAvg = DB::table('onet_abilities')
+                ->where('onetsoc_code', $occupation->onetsoc_code)
+                ->where('scale_id', 'IM') // Importance
+                ->avg('data_value');
+        }
+
+        $abilityScore = $abilityAvg ? ($abilityAvg / 5) * 100 : 50; // default neutral if missing
+
+        // Blend scores with heavier weight on interests
+        $combined = (0.8 * $normalizedScore) + (0.2 * $abilityScore);
+
+        return round($combined, 2);
     }
 
     /**
@@ -114,6 +134,9 @@ class CareerMatchingService
      */
     protected function identifySkillGaps(string $onetsocCode): array
     {
+        if (! Schema::hasTable('onet_skills') || ! Schema::hasTable('onet_content_model_reference')) {
+            return [];
+        }
         $requiredSkills = DB::table('onet_skills')
             ->join('onet_content_model_reference', 'onet_skills.element_id', '=', 'onet_content_model_reference.element_id')
             ->where('onet_skills.onetsoc_code', $onetsocCode)
@@ -132,6 +155,9 @@ class CareerMatchingService
      */
     protected function getEducationRequirements(string $onetsocCode): array
     {
+        if (! Schema::hasTable('onet_education_training_experience') || ! Schema::hasTable('onet_content_model_reference')) {
+            return [];
+        }
         $education = DB::table('onet_education_training_experience')
             ->join('onet_content_model_reference', 'onet_education_training_experience.element_id', '=', 'onet_content_model_reference.element_id')
             ->where('onet_education_training_experience.onetsoc_code', $onetsocCode)
@@ -175,6 +201,9 @@ class CareerMatchingService
      */
     public function matchCareersFromSkills(UserAssessmentAttempt $attempt, AssessmentReport $report, int $limit = 10): array
     {
+        if (! Schema::hasTable('onet_skills') || ! Schema::hasTable('onet_occupation_data') || ! Schema::hasTable('onet_content_model_reference')) {
+            return [];
+        }
         $skillProficiencies = $attempt->skillProficiencies;
 
         // Get user's strongest skills

@@ -25,7 +25,15 @@ class HandleInertiaRequests extends Middleware
     public function version(Request $request): ?string
     {
         // Use a file-based version that changes when manifest updates
-        return md5_file(public_path('build/manifest.json'));
+        $manifest = public_path('build/manifest.json');
+
+        if (file_exists($manifest)) {
+            // md5_file may return false on failure; coerce to null to satisfy return type
+            return md5_file($manifest) ?: null;
+        }
+
+        // During tests or when assets haven't been built yet, gracefully return null
+        return null;
     }
 
     /**
@@ -46,6 +54,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'isAdmin' => (bool) optional($request->user())->hasAnyRole('super-admin', 'admin'),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

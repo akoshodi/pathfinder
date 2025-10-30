@@ -141,18 +141,125 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         $user = auth()->user();
 
+        // Base stats for all users
+        $stats = [
+            'saved_items' => $user->savedItems()->count(),
+            'assessments_completed' => \App\Models\UserAssessmentAttempt::query()
+                ->where('user_id', $user->id)
+                ->whereNotNull('completed_at')
+                ->count(),
+            'comparison_items' => $user->comparisonItems()->count(),
+        ];
+
+        $isAdmin = $user->hasAnyRole(['super-admin', 'admin']);
+
+        // Recent attempt (in-progress) and recent result (completed)
+        $recentAttempt = \App\Models\UserAssessmentAttempt::query()
+            ->with('assessmentType:id,name,slug')
+            ->where('user_id', $user->id)
+            ->whereNull('completed_at')
+            ->whereNotNull('started_at')
+            ->latest('started_at')
+            ->first();
+
+        $recentResultAttempt = \App\Models\UserAssessmentAttempt::query()
+            ->with(['assessmentType:id,name,slug', 'report:id,attempt_id,summary'])
+            ->where('user_id', $user->id)
+            ->whereNotNull('completed_at')
+            ->latest('completed_at')
+            ->first();
+
+        $recent = $recentAttempt ? [
+            'attempt' => [
+                'id' => $recentAttempt->id,
+                'progress' => $recentAttempt->calculateProgress(),
+                'started_at' => $recentAttempt->started_at,
+            ],
+            'assessment' => [
+                'name' => $recentAttempt->assessmentType?->name,
+                'slug' => $recentAttempt->assessmentType?->slug,
+            ],
+        ] : null;
+
+        $recentResult = $recentResultAttempt ? [
+            'attempt' => [
+                'id' => $recentResultAttempt->id,
+                'completed_at' => $recentResultAttempt->completed_at,
+            ],
+            'assessment' => [
+                'name' => $recentResultAttempt->assessmentType?->name,
+                'slug' => $recentResultAttempt->assessmentType?->slug,
+            ],
+            'summary' => $recentResultAttempt->report?->summary,
+        ] : null;
+
+        $admin = null;
+        if ($isAdmin) {
+            // Aggregate admin stats
+            $admin = [
+                'totals' => [
+                    'users' => \App\Models\User::count(),
+                    'assessment_attempts' => \App\Models\UserAssessmentAttempt::count(),
+                    'assessments_completed' => \App\Models\UserAssessmentAttempt::query()->whereNotNull('completed_at')->count(),
+                    'reports' => \App\Models\AssessmentReport::count(),
+                    'occupations' => \Illuminate\Support\Facades\DB::table('onet_occupation_data')->count(),
+                ],
+                'assessments' => \App\Models\AssessmentType::query()
+                    ->withCount(['attempts', 'completedAttempts'])
+                    ->orderBy('order')
+                    ->get()
+                    ->map(function ($a) {
+                        $attempts = (int) ($a->attempts_count ?? 0);
+                        $completed = (int) ($a->completed_attempts_count ?? 0);
+                        $rate = $attempts > 0 ? round(($completed / $attempts) * 100, 1) : 0.0;
+
+                        return [
+                            'id' => $a->id,
+                            'name' => $a->name,
+                            'slug' => $a->slug,
+                            'category' => $a->category,
+                            'attempts' => $attempts,
+                            'completed' => $completed,
+                            'completion_rate' => $rate,
+                        ];
+                    }),
+                'recentAttempts' => \App\Models\UserAssessmentAttempt::query()
+                    ->with(['assessmentType:id,name,slug', 'user:id,name,email'])
+                    ->latest('completed_at')
+                    ->latest('started_at')
+                    ->limit(10)
+                    ->get()
+                    ->map(function ($attempt) {
+                        return [
+                            'id' => $attempt->id,
+                            'assessment' => [
+                                'name' => $attempt->assessmentType?->name,
+                                'slug' => $attempt->assessmentType?->slug,
+                            ],
+                            'user' => $attempt->user ? [
+                                'id' => $attempt->user->id,
+                                'name' => $attempt->user->name,
+                                'email' => $attempt->user->email,
+                            ] : null,
+                            'started_at' => $attempt->started_at,
+                            'completed_at' => $attempt->completed_at,
+                        ];
+                    }),
+            ];
+        }
+
         return Inertia::render('dashboard', [
             'user' => [
                 'name' => $user->name,
-                'university' => null, // Could be fetched from profile
+                'university' => null,
                 'major' => null,
                 'graduation_year' => null,
             ],
-            'stats' => [
-                'saved_items' => $user->savedItems()->count(),
-                'assessments_completed' => \App\Models\UserAssessmentAttempt::where('user_id', $user->id)->where('status', 'completed')->count(),
-                'comparison_items' => $user->comparisonItems()->count(),
-            ],
+            'stats' => $stats,
+            'isAdmin' => $isAdmin,
+            'admin' => $admin,
+            'recent' => $recent,
+            'recentResult' => $recentResult,
         ]);
     })->name('dashboard');
 
@@ -171,6 +278,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['role:alumni'])->group(function () {
         Route::get('/alumni/network', [AlumniController::class, 'network'])->name('alumni.network');
         Route::get('/alumni/mentorship', [AlumniController::class, 'mentorship'])->name('alumni.mentorship');
+    });
+
+    // Admin features (requires admin role)
+    Route::middleware(['role:super-admin|admin'])->prefix('admin')->as('admin.')->group(function () {
+        Route::get('/assessments/attempts', [\App\Http\Controllers\Admin\AssessmentAdminController::class, 'attempts'])->name('assessments.attempts');
+        Route::get('/assessments/reports', [\App\Http\Controllers\Admin\AssessmentAdminController::class, 'reports'])->name('assessments.reports');
+
+        // CSV Exports
+        Route::get('/assessments/attempts/export', [\App\Http\Controllers\Admin\AssessmentAdminController::class, 'exportAttempts'])->name('assessments.attempts.export');
+        Route::get('/assessments/reports/export', [\App\Http\Controllers\Admin\AssessmentAdminController::class, 'exportReports'])->name('assessments.reports.export');
+
+        // Placeholders for future admin routes
+        Route::redirect('/users', '/admin/assessments/attempts');
+        Route::redirect('/settings', '/admin/assessments/reports');
     });
 });
 

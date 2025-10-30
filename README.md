@@ -199,6 +199,55 @@ The occupations page features a sidebar with collapsible filter sections:
 ### Autosuggest Search
 Real-time search suggestions powered by a dedicated API endpoint with debouncing for performance.
 
+## PDF Export Setup
+
+Pathfinder supports exporting assessment results to PDF. The controller will:
+
+- Prefer DomPDF (barryvdh/laravel-dompdf) when available.
+- Fallback to Browsershot (spatie/browsershot) when DomPDF is unavailable or fails.
+
+### Option A: DomPDF (default)
+
+DomPDF is already required in composer. If you encounter rendering limitations (complex CSS, fonts, or RTL), consider Browsershot below.
+
+### Option B: Browsershot (Headless Chrome)
+
+Browsershot renders PDFs using Headless Chrome for high-fidelity output.
+
+1) Ensure dependencies are installed:
+
+```bash
+# PHP package (already in composer.json)
+composer install
+
+# System requirements
+# - Node.js v18+ (node & npm must be available in PATH)
+# - Google Chrome or Chromium installed on the server
+```
+
+2) Install Chrome/Chromium (examples):
+
+```bash
+# Ubuntu/Debian (Chromium)
+sudo apt-get update && sudo apt-get install -y chromium-browser || sudo apt-get install -y chromium
+
+# Fedora/RHEL (Chromium)
+sudo dnf install -y chromium
+```
+
+3) Optional: set Chrome path (if Browsershot can’t auto-detect):
+
+```env
+# .env
+BROWSERSHOT_CHROME_PATH=/usr/bin/chromium-browser
+```
+
+4) Test a PDF export:
+
+Visit: `/assessments/{attemptId}/export/pdf`
+
+If DomPDF throws or is missing, the app automatically tries Browsershot. If both are missing or fail, you’ll see a 503 explaining PDF isn’t currently available.
+
 ### Consistent Design System
 - Emerald/teal color palette throughout
 - Responsive grid layouts

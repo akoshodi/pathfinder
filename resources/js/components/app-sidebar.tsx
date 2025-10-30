@@ -13,7 +13,8 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
+import { BookOpen, ClipboardList, FileText, Folder, LayoutGrid, Settings, Users } from 'lucide-react';
+import { usePage } from '@inertiajs/react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -38,6 +39,33 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+    const { isAdmin } = usePage().props as any;
+
+    const adminNavItems: NavItem[] = isAdmin
+        ? [
+              {
+                  title: 'Assessment Attempts',
+                  href: '/admin/assessments/attempts',
+                  icon: ClipboardList,
+              },
+              {
+                  title: 'Assessment Reports',
+                  href: '/admin/assessments/reports',
+                  icon: FileText,
+              },
+              {
+                  title: 'Users',
+                  href: '/admin/users',
+                  icon: Users,
+              },
+              {
+                  title: 'Settings',
+                  href: '/admin/settings',
+                  icon: Settings,
+              },
+          ]
+        : [];
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -54,6 +82,25 @@ export function AppSidebar() {
 
             <SidebarContent>
                 <NavMain items={mainNavItems} />
+                {isAdmin && (
+                    <div className="px-2 py-0">
+                        <div className="text-xs font-semibold text-muted-foreground px-2 py-2">
+                            Admin
+                        </div>
+                        <SidebarMenu>
+                            {adminNavItems.map((item) => (
+                                <SidebarMenuItem key={item.title}>
+                                    <SidebarMenuButton asChild tooltip={{ children: item.title }}>
+                                        <Link href={item.href} prefetch>
+                                            {item.icon && <item.icon />}
+                                            <span>{item.title}</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                            ))}
+                        </SidebarMenu>
+                    </div>
+                )}
             </SidebarContent>
 
             <SidebarFooter>
