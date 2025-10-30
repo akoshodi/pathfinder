@@ -1,5 +1,5 @@
-import { Head, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
+import { Head, Link } from '@inertiajs/react';
 
 interface Assessment {
     id: number;
@@ -41,108 +41,173 @@ export default function AssessmentsShow({ assessment }: Props) {
             <Head title={`${assessment.type} Assessment Results`} />
 
             {/* Hero Section */}
-            <section className={`bg-gradient-to-r ${getColorForType(assessment.type)} text-white py-12 px-4 sm:px-6 lg:px-8`}>
-                <div className="max-w-7xl mx-auto">
-                    <div className="flex items-center gap-4 mb-4">
-                        <span className="text-6xl">{getIconForType(assessment.type)}</span>
+            <section
+                className={`bg-gradient-to-r ${getColorForType(assessment.type)} px-4 py-12 text-white sm:px-6 lg:px-8`}
+            >
+                <div className="mx-auto max-w-7xl">
+                    <div className="mb-4 flex items-center gap-4">
+                        <span className="text-6xl">
+                            {getIconForType(assessment.type)}
+                        </span>
                         <div>
-                            <h1 className="text-4xl font-bold mb-2">{assessment.type} Assessment</h1>
-                            <p className="text-lg opacity-90">Completed on {assessment.completed_at}</p>
+                            <h1 className="mb-2 text-4xl font-bold">
+                                {assessment.type} Assessment
+                            </h1>
+                            <p className="text-lg opacity-90">
+                                Completed on {assessment.completed_at}
+                            </p>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <main className="py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
-                <div className="max-w-7xl mx-auto">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <main className="bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
+                <div className="mx-auto max-w-7xl">
+                    <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
                         {/* Main Content */}
-                        <div className="lg:col-span-2 space-y-8">
+                        <div className="space-y-8 lg:col-span-2">
                             {/* Results Overview */}
-                            <section className="bg-white rounded-lg shadow p-6">
-                                <h2 className="text-2xl font-bold text-gray-900 mb-6">Your Results</h2>
-                                
-                                {assessment.results && typeof assessment.results === 'object' && (
-                                    <div className="space-y-6">
-                                        {Object.entries(assessment.results).map(([key, value], index) => (
-                                            <div key={index}>
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <h3 className="font-semibold text-gray-900 capitalize">
-                                                        {key.replace(/_/g, ' ')}
-                                                    </h3>
-                                                    {typeof value === 'number' && (
-                                                        <span className="font-bold text-indigo-600">{value}%</span>
+                            <section className="rounded-lg bg-white p-6 shadow">
+                                <h2 className="mb-6 text-2xl font-bold text-gray-900">
+                                    Your Results
+                                </h2>
+
+                                {assessment.results &&
+                                    typeof assessment.results === 'object' && (
+                                        <div className="space-y-6">
+                                            {Object.entries(
+                                                assessment.results,
+                                            ).map(([key, value], index) => (
+                                                <div key={index}>
+                                                    <div className="mb-2 flex items-center justify-between">
+                                                        <h3 className="font-semibold text-gray-900 capitalize">
+                                                            {key.replace(
+                                                                /_/g,
+                                                                ' ',
+                                                            )}
+                                                        </h3>
+                                                        {typeof value ===
+                                                            'number' && (
+                                                            <span className="font-bold text-indigo-600">
+                                                                {value}%
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    {typeof value ===
+                                                        'number' && (
+                                                        <div className="h-3 w-full rounded-full bg-gray-200">
+                                                            <div
+                                                                className="h-3 rounded-full bg-indigo-600 transition-all"
+                                                                style={{
+                                                                    width: `${value}%`,
+                                                                }}
+                                                            ></div>
+                                                        </div>
+                                                    )}
+                                                    {typeof value ===
+                                                        'string' && (
+                                                        <p className="text-gray-700">
+                                                            {value}
+                                                        </p>
                                                     )}
                                                 </div>
-                                                {typeof value === 'number' && (
-                                                    <div className="w-full bg-gray-200 rounded-full h-3">
-                                                        <div
-                                                            className="bg-indigo-600 h-3 rounded-full transition-all"
-                                                            style={{ width: `${value}%` }}
-                                                        ></div>
-                                                    </div>
-                                                )}
-                                                {typeof value === 'string' && (
-                                                    <p className="text-gray-700">{value}</p>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
+                                            ))}
+                                        </div>
+                                    )}
 
                                 {!assessment.results && (
-                                    <p className="text-gray-600">Results are being processed...</p>
+                                    <p className="text-gray-600">
+                                        Results are being processed...
+                                    </p>
                                 )}
                             </section>
 
                             {/* Recommendations */}
-                            {assessment.recommendations && assessment.recommendations.length > 0 && (
-                                <section className="bg-white rounded-lg shadow p-6">
-                                    <h2 className="text-2xl font-bold text-gray-900 mb-6">Recommendations</h2>
-                                    <div className="space-y-4">
-                                        {assessment.recommendations.map((recommendation: any, index: number) => (
-                                            <div
-                                                key={index}
-                                                className="p-4 bg-indigo-50 rounded-lg border-l-4 border-indigo-600"
-                                            >
-                                                {typeof recommendation === 'string' ? (
-                                                    <p className="text-gray-800">{recommendation}</p>
-                                                ) : (
-                                                    <>
-                                                        {recommendation.title && (
-                                                            <h3 className="font-semibold text-gray-900 mb-2">
-                                                                {recommendation.title}
-                                                            </h3>
-                                                        )}
-                                                        {recommendation.description && (
-                                                            <p className="text-gray-700 text-sm">
-                                                                {recommendation.description}
+                            {assessment.recommendations &&
+                                assessment.recommendations.length > 0 && (
+                                    <section className="rounded-lg bg-white p-6 shadow">
+                                        <h2 className="mb-6 text-2xl font-bold text-gray-900">
+                                            Recommendations
+                                        </h2>
+                                        <div className="space-y-4">
+                                            {assessment.recommendations.map(
+                                                (
+                                                    recommendation: any,
+                                                    index: number,
+                                                ) => (
+                                                    <div
+                                                        key={index}
+                                                        className="rounded-lg border-l-4 border-indigo-600 bg-indigo-50 p-4"
+                                                    >
+                                                        {typeof recommendation ===
+                                                        'string' ? (
+                                                            <p className="text-gray-800">
+                                                                {recommendation}
                                                             </p>
+                                                        ) : (
+                                                            <>
+                                                                {recommendation.title && (
+                                                                    <h3 className="mb-2 font-semibold text-gray-900">
+                                                                        {
+                                                                            recommendation.title
+                                                                        }
+                                                                    </h3>
+                                                                )}
+                                                                {recommendation.description && (
+                                                                    <p className="text-sm text-gray-700">
+                                                                        {
+                                                                            recommendation.description
+                                                                        }
+                                                                    </p>
+                                                                )}
+                                                            </>
                                                         )}
-                                                    </>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </section>
-                            )}
+                                                    </div>
+                                                ),
+                                            )}
+                                        </div>
+                                    </section>
+                                )}
 
                             {/* Your Answers */}
-                            <section className="bg-white rounded-lg shadow p-6">
-                                <h2 className="text-2xl font-bold text-gray-900 mb-6">Your Answers</h2>
+                            <section className="rounded-lg bg-white p-6 shadow">
+                                <h2 className="mb-6 text-2xl font-bold text-gray-900">
+                                    Your Answers
+                                </h2>
                                 <div className="space-y-6">
-                                    {assessment.questions && assessment.answers && assessment.questions.map((question: any, index: number) => (
-                                        <div key={index} className="pb-6 border-b border-gray-200 last:border-b-0">
-                                            <h3 className="font-semibold text-gray-900 mb-2">
-                                                {index + 1}. {typeof question === 'string' ? question : question.text}
-                                            </h3>
-                                            <p className="text-gray-700 pl-6">
-                                                {typeof assessment.answers[index] === 'string'
-                                                    ? assessment.answers[index]
-                                                    : JSON.stringify(assessment.answers[index])}
-                                            </p>
-                                        </div>
-                                    ))}
+                                    {assessment.questions &&
+                                        assessment.answers &&
+                                        assessment.questions.map(
+                                            (question: any, index: number) => (
+                                                <div
+                                                    key={index}
+                                                    className="border-b border-gray-200 pb-6 last:border-b-0"
+                                                >
+                                                    <h3 className="mb-2 font-semibold text-gray-900">
+                                                        {index + 1}.{' '}
+                                                        {typeof question ===
+                                                        'string'
+                                                            ? question
+                                                            : question.text}
+                                                    </h3>
+                                                    <p className="pl-6 text-gray-700">
+                                                        {typeof assessment
+                                                            .answers[index] ===
+                                                        'string'
+                                                            ? assessment
+                                                                  .answers[
+                                                                  index
+                                                              ]
+                                                            : JSON.stringify(
+                                                                  assessment
+                                                                      .answers[
+                                                                      index
+                                                                  ],
+                                                              )}
+                                                    </p>
+                                                </div>
+                                            ),
+                                        )}
                                 </div>
                             </section>
                         </div>
@@ -150,43 +215,59 @@ export default function AssessmentsShow({ assessment }: Props) {
                         {/* Sidebar */}
                         <div className="space-y-6">
                             {/* Quick Stats */}
-                            <div className="bg-white rounded-lg shadow p-6">
-                                <h3 className="font-bold text-lg mb-4 text-gray-900">Assessment Details</h3>
+                            <div className="rounded-lg bg-white p-6 shadow">
+                                <h3 className="mb-4 text-lg font-bold text-gray-900">
+                                    Assessment Details
+                                </h3>
                                 <div className="space-y-4 text-sm">
                                     <div>
-                                        <div className="text-gray-600 mb-1">Type</div>
-                                        <div className="font-semibold">{assessment.type}</div>
+                                        <div className="mb-1 text-gray-600">
+                                            Type
+                                        </div>
+                                        <div className="font-semibold">
+                                            {assessment.type}
+                                        </div>
                                     </div>
                                     <div>
-                                        <div className="text-gray-600 mb-1">Completed</div>
-                                        <div className="font-semibold">{assessment.completed_at}</div>
+                                        <div className="mb-1 text-gray-600">
+                                            Completed
+                                        </div>
+                                        <div className="font-semibold">
+                                            {assessment.completed_at}
+                                        </div>
                                     </div>
                                     <div>
-                                        <div className="text-gray-600 mb-1">Questions</div>
-                                        <div className="font-semibold">{assessment.questions?.length || 0}</div>
+                                        <div className="mb-1 text-gray-600">
+                                            Questions
+                                        </div>
+                                        <div className="font-semibold">
+                                            {assessment.questions?.length || 0}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Actions */}
-                            <div className="bg-white rounded-lg shadow p-6">
-                                <h3 className="font-bold text-lg mb-4 text-gray-900">Next Steps</h3>
+                            <div className="rounded-lg bg-white p-6 shadow">
+                                <h3 className="mb-4 text-lg font-bold text-gray-900">
+                                    Next Steps
+                                </h3>
                                 <div className="space-y-3">
                                     <Link
                                         href="/assessments"
-                                        className="block w-full px-4 py-2 bg-indigo-600 text-white text-center rounded-lg hover:bg-indigo-700 transition-colors"
+                                        className="block w-full rounded-lg bg-indigo-600 px-4 py-2 text-center text-white transition-colors hover:bg-indigo-700"
                                     >
                                         Take Another Assessment
                                     </Link>
                                     <Link
                                         href="/careers"
-                                        className="block w-full px-4 py-2 bg-gray-200 text-gray-800 text-center rounded-lg hover:bg-gray-300 transition-colors"
+                                        className="block w-full rounded-lg bg-gray-200 px-4 py-2 text-center text-gray-800 transition-colors hover:bg-gray-300"
                                     >
                                         Explore Careers
                                     </Link>
                                     <Link
                                         href="/courses"
-                                        className="block w-full px-4 py-2 bg-gray-200 text-gray-800 text-center rounded-lg hover:bg-gray-300 transition-colors"
+                                        className="block w-full rounded-lg bg-gray-200 px-4 py-2 text-center text-gray-800 transition-colors hover:bg-gray-300"
                                     >
                                         Browse Courses
                                     </Link>
@@ -194,12 +275,15 @@ export default function AssessmentsShow({ assessment }: Props) {
                             </div>
 
                             {/* Share */}
-                            <div className="bg-white rounded-lg shadow p-6">
-                                <h3 className="font-bold text-lg mb-4 text-gray-900">Share Results</h3>
-                                <p className="text-sm text-gray-600 mb-4">
-                                    Share your assessment results with mentors or career advisors
+                            <div className="rounded-lg bg-white p-6 shadow">
+                                <h3 className="mb-4 text-lg font-bold text-gray-900">
+                                    Share Results
+                                </h3>
+                                <p className="mb-4 text-sm text-gray-600">
+                                    Share your assessment results with mentors
+                                    or career advisors
                                 </p>
-                                <button className="w-full px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">
+                                <button className="w-full rounded-lg bg-gray-200 px-4 py-2 text-gray-800 transition-colors hover:bg-gray-300">
                                     Generate Share Link
                                 </button>
                             </div>

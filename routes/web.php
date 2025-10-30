@@ -124,8 +124,13 @@ Route::get('/recommendations', [PageController::class, 'recommendations'])->name
 Route::get('/course-eligibility', [PageController::class, 'courseEligibility'])->name('course-eligibility');
 Route::get('/claim-school', [PageController::class, 'claimSchool'])->name('claim-school');
 
-// Assessments (public landing/index, authenticated for create/show)
+// Assessments (public)
 Route::get('/assessments', [AssessmentController::class, 'index'])->name('assessments.index');
+Route::post('/assessments/{slug}/start', [AssessmentController::class, 'start'])->name('assessments.start');
+Route::get('/assessments/{attempt}/take', [AssessmentController::class, 'take'])->name('assessments.take');
+Route::post('/assessments/{attempt}/answer', [AssessmentController::class, 'answer'])->name('assessments.answer');
+Route::post('/assessments/{attempt}/complete', [AssessmentController::class, 'complete'])->name('assessments.complete');
+Route::get('/assessments/{attempt}/results', [AssessmentController::class, 'results'])->name('assessments.results');
 
 // Authenticated routes
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -141,7 +146,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ],
             'stats' => [
                 'saved_items' => $user->savedItems()->count(),
-                'assessments_completed' => $user->assessments()->count(),
+                'assessments_completed' => \App\Models\UserAssessmentAttempt::where('user_id', $user->id)->where('status', 'completed')->count(),
                 'comparison_items' => $user->comparisonItems()->count(),
             ],
         ]);
@@ -156,9 +161,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/comparison', [ComparisonController::class, 'store'])->name('comparison.store');
     Route::delete('/comparison/{comparisonItem}', [ComparisonController::class, 'destroy'])->name('comparison.destroy');
 
-    // Assessments (protected actions)
-    Route::post('/assessments', [AssessmentController::class, 'store'])->name('assessments.store');
-    Route::get('/assessments/{assessment}', [AssessmentController::class, 'show'])->name('assessments.show');
+    // Assessment routes now handle both authenticated and anonymous users
 
     // Alumni features (requires alumni role)
     Route::middleware(['role:alumni'])->group(function () {

@@ -2,78 +2,366 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Assessment;
+use App\Models\AssessmentQuestion;
+use App\Models\AssessmentType;
+use App\Models\UserAssessmentAttempt;
+use App\Models\UserAssessmentResponse;
+use App\Services\Assessment\PersonalityScoringService;
+use App\Services\Assessment\ReportGenerationService;
+use App\Services\Assessment\SkillScoringService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Inertia\Response;
 
 class AssessmentController extends Controller
 {
     /**
-     * Display a listing of the user's assessments.
+     * Display available assessments
      */
-    public function index(): Response
+    public function index()
     {
-        $assessments = Assessment::query()
-            ->where('user_id', auth()->id())
-            ->latest()
+        $assessments = AssessmentType::active()
             ->get()
-            ->map(fn ($assessment) => [
-                'id' => $assessment->id,
-                'type' => $assessment->type,
-                'score' => $assessment->score,
-                'completed_at' => $assessment->completed_at?->format('M d, Y'),
-                'results' => $assessment->results,
-            ]);
+            ->map(function ($assessment) {
+                return [
+                    'id' => $assessment->id,
+                    'name' => $assessment->name,
+                    'slug' => $assessment->slug,
+                    'description' => $assessment->description,
+                    'category' => $assessment->category,
+                    'question_count' => $assessment->question_count,
+                    'estimated_duration' => $assessment->estimated_duration,
+                    'instructions' => $assessment->instructions,
+                ];
+            });
+
+        $userAttempts = auth()->check()
+            ? UserAssessmentAttempt::where('user_id', auth()->id())
+                ->with('assessmentType')
+                ->latest()
+                ->limit(5)
+                ->get()
+            : [];
 
         return Inertia::render('Assessments/Index', [
             'assessments' => $assessments,
+            'recentAttempts' => $userAttempts,
         ]);
     }
 
     /**
-     * Store a newly completed assessment.
+     * Start a new assessment attempt
      */
-    public function store(Request $request)
+    public function start(Request $request, string $slug)
     {
-        $validated = $request->validate([
-            'type' => ['required', 'in:interest,skills,career_fit'],
-            'answers' => ['required', 'array'],
-            'results' => ['nullable', 'array'],
-            'score' => ['nullable', 'integer'],
-            'recommendations' => ['nullable', 'array'],
+        $assessmentType = AssessmentType::where('slug', $slug)
+            ->where('is_active', true)
+            ->firstOrFail();
+
+        // Check if user has an in-progress attempt (started but not completed)
+        if (auth()->check()) {
+            $existingAttempt = UserAssessmentAttempt::where('user_id', auth()->id())
+                ->where('assessment_type_id', $assessmentType->id)
+                ->whereNotNull('started_at')
+                ->whereNull('completed_at')
+                ->first();
+
+            if ($existingAttempt) {
+                return redirect()->route('assessments.take', $existingAttempt->id);
+            }
+        }
+
+        // Create new attempt
+        $attempt = UserAssessmentAttempt::create([
+            'user_id' => auth()->id(),
+            'session_id' => $request->session()->getId(),
+            'assessment_type_id' => $assessmentType->id,
+            'started_at' => now(),
         ]);
 
-        $assessment = Assessment::create([
-            'user_id' => auth()->id(),
-            'type' => $validated['type'],
-            'answers' => $validated['answers'],
-            'results' => $validated['results'] ?? [],
-            'score' => $validated['score'] ?? null,
-            'recommendations' => $validated['recommendations'] ?? [],
+        return redirect()->route('assessments.take', $attempt->id);
+    }
+
+    /**
+     * Display assessment questions
+     */
+    public function take(UserAssessmentAttempt $attempt)
+    {
+        // Verify user can access this attempt
+        if (auth()->check() && $attempt->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        if (! auth()->check() && $attempt->session_id !== request()->session()->getId()) {
+            abort(403);
+        }
+
+        if ($attempt->isCompleted()) {
+            return redirect()->route('assessments.results', $attempt->id);
+        }
+
+        $assessmentType = $attempt->assessmentType;
+        $questions = AssessmentQuestion::where('assessment_type_id', $assessmentType->id)
+            ->where('is_active', true)
+            ->orderBy('order')
+            ->get()
+            ->map(function ($question) {
+                return [
+                    'id' => $question->id,
+                    'question_text' => $question->question_text,
+                    'question_type' => $question->question_type,
+                    'category' => $question->category,
+                    'options' => $question->options,
+                    'order' => $question->order,
+                ];
+            });
+
+        $existingResponses = UserAssessmentResponse::where('attempt_id', $attempt->id)
+            ->get()
+            ->keyBy('question_id');
+
+        return Inertia::render('Assessments/Take', [
+            'attempt' => [
+                'id' => $attempt->id,
+                'status' => $attempt->isCompleted() ? 'completed' : ($attempt->started_at ? 'in_progress' : 'not_started'),
+                'progress' => $attempt->calculateProgress(),
+                'started_at' => $attempt->started_at,
+            ],
+            'assessment' => [
+                'name' => $assessmentType->name,
+                'slug' => $assessmentType->slug,
+                'description' => $assessmentType->description,
+                'instructions' => $assessmentType->instructions,
+                'question_count' => $assessmentType->question_count,
+            ],
+            'questions' => $questions,
+            'responses' => $existingResponses,
+        ]);
+    }
+
+    /**
+     * Save assessment response
+     */
+    public function answer(Request $request, UserAssessmentAttempt $attempt)
+    {
+        // Verify user can access this attempt
+        if (auth()->check() && $attempt->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        if (! auth()->check() && $attempt->session_id !== request()->session()->getId()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'question_id' => 'required|exists:assessment_questions,id',
+            'response_value' => 'required',
+            'time_spent' => 'nullable|integer',
+        ]);
+
+        $question = AssessmentQuestion::findOrFail($validated['question_id']);
+
+        // Calculate response score based on scoring_map
+        $responseScore = $this->calculateResponseScore($question, $validated['response_value']);
+
+        UserAssessmentResponse::updateOrCreate(
+            [
+                'attempt_id' => $attempt->id,
+                'question_id' => $validated['question_id'],
+            ],
+            [
+                'response_value' => $validated['response_value'],
+                'response_score' => is_int($responseScore) ? $responseScore : null,
+                'time_spent_seconds' => $validated['time_spent'] ?? null,
+            ]
+        );
+
+        $progress = $attempt->calculateProgress();
+
+        return response()->json([
+            'success' => true,
+            'progress' => $progress,
+        ]);
+    }
+
+    /**
+     * Complete assessment and generate report
+     */
+    public function complete(UserAssessmentAttempt $attempt)
+    {
+        // Verify user can access this attempt
+        if (auth()->check() && $attempt->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        if (! auth()->check() && $attempt->session_id !== request()->session()->getId()) {
+            abort(403);
+        }
+
+        if ($attempt->isCompleted()) {
+            return redirect()->route('assessments.results', $attempt->id);
+        }
+
+        // Mark as completed
+        $attempt->update([
             'completed_at' => now(),
         ]);
 
-        return redirect()->route('assessments.show', $assessment);
+        // Generate report
+        $reportService = new ReportGenerationService;
+        $report = $reportService->generate($attempt);
+
+        return redirect()->route('assessments.results', $attempt->id);
     }
 
     /**
-     * Display the specified assessment.
+     * Display assessment results
      */
-    public function show(Assessment $assessment): Response
+    public function results(UserAssessmentAttempt $attempt)
     {
-        $this->authorize('view', $assessment);
+        // Verify user can access this attempt
+        if (auth()->check() && $attempt->user_id !== auth()->id()) {
+            abort(403);
+        }
 
-        return Inertia::render('Assessments/Show', [
-            'assessment' => [
-                'id' => $assessment->id,
-                'type' => $assessment->type,
-                'answers' => $assessment->answers,
-                'results' => $assessment->results,
-                'score' => $assessment->score,
-                'recommendations' => $assessment->recommendations,
-                'completed_at' => $assessment->completed_at?->format('M d, Y'),
+        if (! auth()->check() && $attempt->session_id !== request()->session()->getId()) {
+            abort(403);
+        }
+
+        if (! $attempt->isCompleted()) {
+            return redirect()->route('assessments.take', $attempt->id);
+        }
+
+        $report = $attempt->report;
+
+        if (! $report) {
+            // Generate report if missing
+            $reportService = new ReportGenerationService;
+            $report = $reportService->generate($attempt);
+        }
+
+        // Determine category with fallback via slug
+        $assessmentType = $attempt->assessmentType;
+        $category = $assessmentType->category ?? match ($assessmentType->slug) {
+            'riasec' => 'career_interest',
+            'skills' => 'skills',
+            'personality' => 'personality',
+            default => null,
+        };
+
+        // Build dynamic insights and recommendations (not persisted in DB)
+        $reportService = new ReportGenerationService;
+        $insights = $reportService->generateInsights($attempt);
+        $recommendations = $reportService->generateRecommendations($attempt);
+
+        $data = [
+            'attempt' => [
+                'id' => $attempt->id,
+                'completed_at' => $attempt->completed_at,
             ],
-        ]);
+            'assessment' => [
+                'name' => $attempt->assessmentType->name,
+                'category' => $category,
+            ],
+            'report' => [
+                'id' => $report->id,
+                'summary' => $report->summary,
+                'top_traits' => $report->top_traits,
+                'insights' => $insights,
+                'recommendations' => $recommendations,
+                'visualization_data' => $report->visualization_data,
+            ],
+        ];
+
+        // Add category-specific data
+        if ($category === 'career_interest') {
+            $riasecScore = $attempt->riasecScore;
+            if ($riasecScore) {
+                $data['riasec'] = [
+                    'holland_code' => $riasecScore->holland_code,
+                    'primary_code' => $riasecScore->primary_code,
+                    'secondary_code' => $riasecScore->secondary_code,
+                    'tertiary_code' => $riasecScore->tertiary_code,
+                    'scores' => $riasecScore->getAllScores(),
+                    'top_codes' => $riasecScore->getTopThreeCodes(),
+                ];
+            }
+        }
+
+        if ($category === 'personality') {
+            $trait = $attempt->personalityTrait;
+            if ($trait) {
+                $data['personalityPreferences'] = $trait->work_style_preferences ?? [];
+            }
+
+            // Provide Big Five trait descriptions for tooltips
+            $personalityService = new PersonalityScoringService;
+            $data['personalityTraitDescriptions'] = $personalityService->getTraitDescriptions();
+        }
+
+        if ($category === 'skills') {
+            // Provide domain descriptions and server-computed labels per domain for tooltips and badges
+            $skillService = new SkillScoringService;
+            $data['skillsMeta'] = [
+                'domainDescriptions' => $skillService->getDomainDescriptions(),
+                'labels' => (function () use ($skillService, $report) {
+                    $labels = [];
+                    $viz = $report->visualization_data ?? [];
+                    $ds = $viz['datasets'][0]['data'] ?? [];
+                    $names = $viz['labels'] ?? [];
+                    foreach ($names as $idx => $name) {
+                        $level = (int) ($ds[$idx] ?? 0); // 1-5 level
+                        $percent = max(0, min(100, ($level / 5) * 100));
+                        $labels[$name] = $skillService->getProficiencyLevel($percent);
+                    }
+
+                    return $labels;
+                })(),
+            ];
+        }
+
+        // Load career recommendations
+        $careerRecommendations = $report->careerRecommendations()
+            ->with('occupation')
+            ->topRanked(10)
+            ->get()
+            ->map(function ($recommendation) {
+                return [
+                    'id' => $recommendation->id,
+                    'occupation_code' => $recommendation->onetsoc_code,
+                    'occupation_title' => $recommendation->occupation?->title,
+                    'match_score' => $recommendation->match_score,
+                    'match_reasons' => $recommendation->match_reasons,
+                    'skill_gaps' => $recommendation->skill_gaps,
+                    'education_requirements' => $recommendation->education_requirements,
+                    'learning_paths' => $recommendation->learning_paths,
+                    'rank' => $recommendation->rank,
+                ];
+            });
+
+        $data['careerRecommendations'] = $careerRecommendations;
+
+        return Inertia::render('Assessments/Results', $data);
+    }
+
+    /**
+     * Calculate response score based on question's scoring map
+     */
+    protected function calculateResponseScore(AssessmentQuestion $question, $responseValue): mixed
+    {
+        $scoringMap = $question->scoring_map;
+
+        if (! $scoringMap || ! isset($scoringMap[$responseValue])) {
+            return null;
+        }
+
+        $value = $scoringMap[$responseValue];
+
+        // If this is a personality question, scoring_map entries look like ['score' => n]
+        if (is_array($value) && array_key_exists('score', $value)) {
+            return (int) $value['score'];
+        }
+
+        // For other assessments (e.g., RIASEC), we don't persist complex maps; services use question->scoring_map
+        return null;
     }
 }
