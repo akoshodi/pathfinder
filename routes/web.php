@@ -291,6 +291,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Analytics Dashboard
         Route::get('/analytics', [\App\Http\Controllers\Admin\AnalyticsController::class, 'index'])->name('analytics');
 
+        // Content Management
+        Route::resource('universities', \App\Http\Controllers\Admin\UniversityController::class);
+        Route::resource('companies', \App\Http\Controllers\Admin\CompanyController::class);
+        Route::resource('resources', \App\Http\Controllers\Admin\ResourceController::class);
+        Route::resource('competitions', \App\Http\Controllers\Admin\CompetitionController::class);
+        Route::resource('blog-posts', \App\Http\Controllers\Admin\BlogPostController::class);
+
         // Assessment Management
         Route::get('/assessments/attempts', [\App\Http\Controllers\Admin\AssessmentAdminController::class, 'attempts'])->name('assessments.attempts');
         Route::get('/assessments/reports', [\App\Http\Controllers\Admin\AssessmentAdminController::class, 'reports'])->name('assessments.reports');
