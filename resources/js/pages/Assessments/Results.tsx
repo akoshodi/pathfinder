@@ -301,7 +301,14 @@ export default function AssessmentsResults({
                                                             </TooltipTrigger>
                                                             <TooltipContent side="top">
                                                                 <div className="max-w-xs text-left">
-                                                                    <p className="text-white/90">{desc}</p>
+                                                                    <p className="mb-2 text-white/90">{desc}</p>
+                                                                    {skillsMeta?.domainDescriptions?.[label]?.skills?.length ? (
+                                                                        <ul className="list-disc space-y-1 pl-4 text-xs text-white/80">
+                                                                            {skillsMeta.domainDescriptions[label].skills.slice(0, 5).map((s) => (
+                                                                                <li key={s}>{s}</li>
+                                                                            ))}
+                                                                        </ul>
+                                                                    ) : null}
                                                                 </div>
                                                             </TooltipContent>
                                                         </Tooltip>
@@ -352,7 +359,27 @@ export default function AssessmentsResults({
                                                             </TooltipTrigger>
                                                             <TooltipContent side="top">
                                                                 <div className="max-w-xs text-left">
-                                                                    <p className="text-white/90">{desc}</p>
+                                                                    <p className="mb-2 text-white/90">{desc}</p>
+                                                                    {personalityTraitDescriptions?.[label]?.high_characteristics?.length ? (
+                                                                        <div className="mb-2">
+                                                                            <p className="mb-1 text-xs font-semibold text-white/90">High tends to:</p>
+                                                                            <ul className="list-disc space-y-1 pl-4 text-xs text-white/80">
+                                                                                {personalityTraitDescriptions[label].high_characteristics.slice(0, 4).map((c) => (
+                                                                                    <li key={`hi-${c}`}>{c}</li>
+                                                                                ))}
+                                                                            </ul>
+                                                                        </div>
+                                                                    ) : null}
+                                                                    {personalityTraitDescriptions?.[label]?.low_characteristics?.length ? (
+                                                                        <div>
+                                                                            <p className="mb-1 text-xs font-semibold text-white/90">Low tends to:</p>
+                                                                            <ul className="list-disc space-y-1 pl-4 text-xs text-white/80">
+                                                                                {personalityTraitDescriptions[label].low_characteristics.slice(0, 4).map((c) => (
+                                                                                    <li key={`lo-${c}`}>{c}</li>
+                                                                                ))}
+                                                                            </ul>
+                                                                        </div>
+                                                                    ) : null}
                                                                 </div>
                                                             </TooltipContent>
                                                         </Tooltip>
