@@ -10,8 +10,15 @@ interface ReportItem {
   generated_at?: string | null
 }
 
+type ReportFilters = {
+  type?: string | null
+  search?: string | null
+  sort?: string | null
+  direction?: string | null
+}
+
 interface ReportsPageProps {
-  filters: { type?: string | null; search?: string | null; sort?: string | null; direction?: string | null }
+  filters?: ReportFilters
   reports: {
     data: ReportItem[]
     current_page: number
@@ -22,14 +29,23 @@ interface ReportsPageProps {
 }
 
 export default function ReportsPage({ filters, reports }: ReportsPageProps) {
-  const [type, setType] = useState(filters.type ?? '')
-  const [search, setSearch] = useState(filters.search ?? '')
-  const [sort, setSort] = useState(filters.sort ?? '')
-  const [direction, setDirection] = useState<("asc"|"desc")>(
-    (filters.direction === 'asc' || filters.direction === 'desc') ? (filters.direction as any) : 'desc'
+  const safeFilters: ReportFilters = (filters ?? {}) as ReportFilters
+  const safeReports: ReportsPageProps['reports'] = reports ?? {
+    data: [],
+    current_page: 1,
+    last_page: 1,
+    per_page: 0,
+    total: 0,
+  }
+
+  const [type, setType] = useState(safeFilters.type ?? '')
+  const [search, setSearch] = useState(safeFilters.search ?? '')
+  const [sort, setSort] = useState(safeFilters.sort ?? '')
+  const [direction, setDirection] = useState<('asc' | 'desc')>(
+    safeFilters.direction === 'asc' || safeFilters.direction === 'desc' ? (safeFilters.direction as 'asc' | 'desc') : 'desc'
   )
 
-  const rows = Array.isArray(reports?.data) ? reports.data : []
+  const rows = Array.isArray(safeReports.data) ? safeReports.data : []
 
   const buildQuery = (extra?: Record<string, string | number>): string => {
     const qs = new URLSearchParams()
@@ -80,13 +96,13 @@ export default function ReportsPage({ filters, reports }: ReportsPageProps) {
 
   const pager = useMemo(() => {
     const pages: number[] = []
-    const current = reports?.current_page ?? 1
-    const last = reports?.last_page ?? 1
+  const current = safeReports.current_page ?? 1
+  const last = safeReports.last_page ?? 1
     const start = Math.max(1, current - 2)
     const end = Math.min(last, current + 2)
     for (let i = start; i <= end; i++) pages.push(i)
     return pages
-  }, [reports])
+  }, [safeReports.current_page, safeReports.last_page])
 
   return (
     <div className="p-6">
@@ -140,8 +156,8 @@ export default function ReportsPage({ filters, reports }: ReportsPageProps) {
                 </td>
                 <td className="px-4 py-2 text-sm">{row.report_type ?? '-'}</td>
                 <td className="px-4 py-2">
-                  <div className="font-medium">{row.assessment.name ?? '-'}</div>
-                  <div className="text-xs text-gray-500">{row.assessment.slug ?? ''}</div>
+                  <div className="font-medium">{row.assessment?.name ?? '-'}</div>
+                  <div className="text-xs text-gray-500">{row.assessment?.slug ?? ''}</div>
                 </td>
                 <td className="px-4 py-2">
                   <div className="font-medium">{row.user?.name ?? '-'}</div>
@@ -157,9 +173,9 @@ export default function ReportsPage({ filters, reports }: ReportsPageProps) {
       <div className="mt-4 flex items-center justify-between text-sm">
         <div>
           {(() => {
-            const current = reports?.current_page ?? 1
-            const perPage = reports?.per_page ?? 0
-            const total = reports?.total ?? 0
+            const current = safeReports.current_page ?? 1
+            const perPage = safeReports.per_page ?? 0
+            const total = safeReports.total ?? 0
             const start = total > 0 ? (current - 1) * perPage + 1 : 0
             const end = Math.min(current * perPage, total)
             return (
@@ -170,10 +186,10 @@ export default function ReportsPage({ filters, reports }: ReportsPageProps) {
           })()}
         </div>
         <div className="flex items-center gap-2">
-          {(reports?.current_page ?? 1) > 1 && (
+          {(safeReports.current_page ?? 1) > 1 && (
             <Link
               className="rounded border px-2 py-1"
-              href={`/admin/assessments/reports${buildQuery({ page: String((reports?.current_page ?? 1) - 1) })}`}
+              href={`/admin/assessments/reports${buildQuery({ page: String((safeReports.current_page ?? 1) - 1) })}`}
               preserveScroll
               preserveState
             >
@@ -184,7 +200,7 @@ export default function ReportsPage({ filters, reports }: ReportsPageProps) {
             <Link
               key={p}
               className={
-                'rounded border px-2 py-1 ' + (p === (reports?.current_page ?? 1) ? 'bg-blue-600 text-white' : '')
+                'rounded border px-2 py-1 ' + (p === (safeReports.current_page ?? 1) ? 'bg-blue-600 text-white' : '')
               }
               href={`/admin/assessments/reports${buildQuery({ page: String(p) })}`}
               preserveScroll
@@ -193,10 +209,10 @@ export default function ReportsPage({ filters, reports }: ReportsPageProps) {
               {p}
             </Link>
           ))}
-          {(reports?.current_page ?? 1) < (reports?.last_page ?? 1) && (
+          {(safeReports.current_page ?? 1) < (safeReports.last_page ?? 1) && (
             <Link
               className="rounded border px-2 py-1"
-              href={`/admin/assessments/reports${buildQuery({ page: String((reports?.current_page ?? 1) + 1) })}`}
+              href={`/admin/assessments/reports${buildQuery({ page: String((safeReports.current_page ?? 1) + 1) })}`}
               preserveScroll
               preserveState
             >

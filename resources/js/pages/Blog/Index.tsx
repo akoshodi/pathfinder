@@ -18,7 +18,7 @@ interface BlogPost {
     categories: string[] | null;
     views_count: number;
     published_at: string;
-    author: Author;
+    author: Author | null;
 }
 
 interface Props {
@@ -181,7 +181,7 @@ export default function BlogIndex({ posts, filters }: Props) {
                                     {/* Author & Meta */}
                                     <div className="flex items-center justify-between pt-4 border-t border-gray-200">
                                         <div className="flex items-center">
-                                            {post.author.avatar ? (
+                                            {post.author?.avatar ? (
                                                 <img
                                                     src={post.author.avatar}
                                                     alt={post.author.name}
@@ -189,11 +189,11 @@ export default function BlogIndex({ posts, filters }: Props) {
                                                 />
                                             ) : (
                                                 <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center mr-2 text-sm text-emerald-600 font-semibold">
-                                                    {post.author.name.charAt(0)}
+                                                    {(post.author?.name || 'Unknown').charAt(0)}
                                                 </div>
                                             )}
                                             <div className="text-sm">
-                                                <div className="font-medium text-gray-900">{post.author.name}</div>
+                                                <div className="font-medium text-gray-900">{post.author?.name || 'Unknown'}</div>
                                             </div>
                                         </div>
                                         <div className="text-xs text-gray-500">{post.views_count} views</div>

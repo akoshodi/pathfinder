@@ -22,10 +22,14 @@ class AssessmentTypeFactory extends Factory
             'name' => fake()->words(3, true),
             'slug' => $slug,
             'description' => fake()->sentence(),
-            'config' => json_encode([
+            'category' => fake()->randomElement(['career_interest', 'skills', 'personality']),
+            'question_count' => fake()->numberBetween(0, 60),
+            'duration_minutes' => fake()->numberBetween(0, 30),
+            'scoring_config' => [
                 'time_limit_minutes' => 30,
                 'pass_threshold' => 70,
-            ]),
+            ],
+            'instructions' => fake()->sentence(8),
             'is_active' => true,
         ];
     }

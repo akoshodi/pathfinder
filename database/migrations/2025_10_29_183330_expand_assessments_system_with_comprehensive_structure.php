@@ -68,8 +68,11 @@ return new class extends Migration
         Schema::create('user_assessment_responses', function (Blueprint $table) {
             $table->id();
             $table->foreignId('attempt_id')->constrained('user_assessment_attempts')->onDelete('cascade');
-            $table->foreignId('question_id')->constrained('assessment_questions')->onDelete('cascade');
-            $table->text('response_value'); // The actual answer
+            // Use a loose reference for question_id to simplify tests and allow historical data
+            $table->unsignedBigInteger('question_id')->index();
+            $table->text('response_value'); // The actual answer (numeric/string)
+            $table->text('response_text')->nullable(); // Optional free-text response
+            $table->string('question_category')->nullable(); // e.g., Realistic, Technical, Openness
             $table->integer('response_score')->nullable(); // Computed score for this response
             $table->integer('time_spent_seconds')->nullable();
             $table->timestamps();

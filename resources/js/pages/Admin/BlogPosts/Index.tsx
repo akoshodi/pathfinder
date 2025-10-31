@@ -33,7 +33,7 @@ interface Props {
     filters: { search?: string; status?: string; };
 }
 
-export default function Index({ blogPosts, filters }: Props) {
+export default function Index({ blogPosts, filters = {} }: Props) {
     const [search, setSearch] = useState(filters.search || '');
     const [status, setStatus] = useState(filters.status || '');
 

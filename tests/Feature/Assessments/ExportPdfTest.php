@@ -9,10 +9,6 @@ use App\Services\Assessment\ReportGenerationService;
 use function Pest\Laravel\seed;
 
 it('downloads a PDF report for a completed attempt', function () {
-    if (! class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
-        $this->markTestSkipped('PDF package not installed');
-    }
-
     seed(Database\Seeders\AssessmentTypeSeeder::class);
     seed(Database\Seeders\RiasecQuestionSeeder::class);
 

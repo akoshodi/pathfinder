@@ -11,8 +11,15 @@ interface AttemptItem {
   progress?: number | null
 }
 
+type AttemptFilters = {
+  status?: string | null
+  search?: string | null
+  sort?: string | null
+  direction?: string | null
+}
+
 interface AttemptsPageProps {
-  filters: { status?: string | null; search?: string | null; sort?: string | null; direction?: string | null }
+  filters?: AttemptFilters
   attempts: {
     data: AttemptItem[]
     current_page: number
@@ -23,14 +30,23 @@ interface AttemptsPageProps {
 }
 
 export default function AttemptsPage({ filters, attempts }: AttemptsPageProps) {
-  const [status, setStatus] = useState(filters.status ?? '')
-  const [search, setSearch] = useState(filters.search ?? '')
-  const [sort, setSort] = useState(filters.sort ?? '')
-  const [direction, setDirection] = useState<("asc"|"desc")>(
-    (filters.direction === 'asc' || filters.direction === 'desc') ? (filters.direction as any) : 'desc'
+  const safeFilters: AttemptFilters = (filters ?? {}) as AttemptFilters
+  const safeAttempts: AttemptsPageProps['attempts'] = attempts ?? {
+    data: [],
+    current_page: 1,
+    last_page: 1,
+    per_page: 0,
+    total: 0,
+  }
+
+  const [status, setStatus] = useState(safeFilters.status ?? '')
+  const [search, setSearch] = useState(safeFilters.search ?? '')
+  const [sort, setSort] = useState(safeFilters.sort ?? '')
+  const [direction, setDirection] = useState<('asc' | 'desc')>(
+    safeFilters.direction === 'asc' || safeFilters.direction === 'desc' ? (safeFilters.direction as 'asc' | 'desc') : 'desc'
   )
 
-  const rows = Array.isArray(attempts?.data) ? attempts.data : []
+  const rows = Array.isArray(safeAttempts.data) ? safeAttempts.data : []
 
   const buildQuery = (extra?: Record<string, string | number>): string => {
     const qs = new URLSearchParams()
@@ -81,13 +97,13 @@ export default function AttemptsPage({ filters, attempts }: AttemptsPageProps) {
 
   const pager = useMemo(() => {
     const pages: number[] = []
-    const current = attempts?.current_page ?? 1
-    const last = attempts?.last_page ?? 1
+    const current = safeAttempts.current_page ?? 1
+    const last = safeAttempts.last_page ?? 1
     const start = Math.max(1, current - 2)
     const end = Math.min(last, current + 2)
     for (let i = start; i <= end; i++) pages.push(i)
     return pages
-  }, [attempts])
+  }, [safeAttempts.current_page, safeAttempts.last_page])
 
   return (
     <div className="p-6">
@@ -147,8 +163,8 @@ export default function AttemptsPage({ filters, attempts }: AttemptsPageProps) {
                   <div className="text-xs text-gray-500">{row.user?.email ?? ''}</div>
                 </td>
                 <td className="px-4 py-2">
-                  <div className="font-medium">{row.assessment.name}</div>
-                  <div className="text-xs text-gray-500">{row.assessment.slug}</div>
+                  <div className="font-medium">{row.assessment?.name ?? '-'}</div>
+                  <div className="text-xs text-gray-500">{row.assessment?.slug ?? ''}</div>
                 </td>
                 <td className="px-4 py-2">
                   {(() => {
@@ -177,9 +193,9 @@ export default function AttemptsPage({ filters, attempts }: AttemptsPageProps) {
       <div className="mt-4 flex items-center justify-between text-sm">
         <div>
           {(() => {
-            const current = attempts?.current_page ?? 1
-            const perPage = attempts?.per_page ?? 0
-            const total = attempts?.total ?? 0
+      const current = safeAttempts.current_page ?? 1
+      const perPage = safeAttempts.per_page ?? 0
+      const total = safeAttempts.total ?? 0
             const start = total > 0 ? (current - 1) * perPage + 1 : 0
             const end = Math.min(current * perPage, total)
             return (
@@ -190,10 +206,10 @@ export default function AttemptsPage({ filters, attempts }: AttemptsPageProps) {
           })()}
         </div>
         <div className="flex items-center gap-2">
-          {(attempts?.current_page ?? 1) > 1 && (
+          {(safeAttempts.current_page ?? 1) > 1 && (
             <Link
               className="rounded border px-2 py-1"
-              href={`/admin/assessments/attempts${buildQuery({ page: String((attempts?.current_page ?? 1) - 1) })}`}
+              href={`/admin/assessments/attempts${buildQuery({ page: String((safeAttempts.current_page ?? 1) - 1) })}`}
               preserveScroll
               preserveState
             >
@@ -204,7 +220,7 @@ export default function AttemptsPage({ filters, attempts }: AttemptsPageProps) {
             <Link
               key={p}
               className={
-                'rounded border px-2 py-1 ' + (p === (attempts?.current_page ?? 1) ? 'bg-blue-600 text-white' : '')
+                'rounded border px-2 py-1 ' + (p === (safeAttempts.current_page ?? 1) ? 'bg-blue-600 text-white' : '')
               }
               href={`/admin/assessments/attempts${buildQuery({ page: String(p) })}`}
               preserveScroll
@@ -213,10 +229,10 @@ export default function AttemptsPage({ filters, attempts }: AttemptsPageProps) {
               {p}
             </Link>
           ))}
-          {(attempts?.current_page ?? 1) < (attempts?.last_page ?? 1) && (
+          {(safeAttempts.current_page ?? 1) < (safeAttempts.last_page ?? 1) && (
             <Link
               className="rounded border px-2 py-1"
-              href={`/admin/assessments/attempts${buildQuery({ page: String((attempts?.current_page ?? 1) + 1) })}`}
+              href={`/admin/assessments/attempts${buildQuery({ page: String((safeAttempts.current_page ?? 1) + 1) })}`}
               preserveScroll
               preserveState
             >

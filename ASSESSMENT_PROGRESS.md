@@ -142,7 +142,7 @@ GET  /assessments/{attempt}/results  - View results
    - Weighted scoring algorithm (40% interests, 35% skills, 25% personality)
 
 6. **PDF Export**
-   - Install Laravel Snappy or DomPDF
+   - Use Spatie Laravel PDF (spatie/laravel-pdf)
    - Create PDF view template with results, charts, recommendations
 
 7. **Learning Path Integration**

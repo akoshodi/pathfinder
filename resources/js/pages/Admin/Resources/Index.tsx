@@ -47,7 +47,7 @@ interface Props {
     };
 }
 
-export default function Index({ resources, filters }: Props) {
+export default function Index({ resources, filters = {} }: Props) {
     const [search, setSearch] = useState(filters.search || '');
     const [type, setType] = useState(filters.type || '');
     const [isActive, setIsActive] = useState(filters.is_active || '');

@@ -20,7 +20,7 @@ interface BlogPost {
     categories: string[] | null;
     views_count: number;
     published_at: string;
-    author: Author;
+    author: Author | null;
 }
 
 interface Props {
@@ -60,7 +60,7 @@ export default function BlogShow({ post }: Props) {
                                 )}
                                 <h1 className="text-5xl font-bold mb-6">{post.title}</h1>
                                 <div className="flex items-center gap-4">
-                                    {post.author.avatar ? (
+                                    {post.author?.avatar ? (
                                         <img
                                             src={post.author.avatar}
                                             alt={post.author.name}
@@ -68,11 +68,11 @@ export default function BlogShow({ post }: Props) {
                                         />
                                     ) : (
                                         <div className="w-12 h-12 rounded-full bg-emerald-600 flex items-center justify-center text-lg font-semibold">
-                                            {post.author.name.charAt(0)}
+                                            {(post.author?.name || 'Unknown').charAt(0)}
                                         </div>
                                     )}
                                     <div>
-                                        <div className="font-semibold">{post.author.name}</div>
+                                        <div className="font-semibold">{post.author?.name || 'Unknown'}</div>
                                         <div className="text-sm text-gray-300">
                                             {post.published_at} · {post.views_count} views
                                         </div>
@@ -96,7 +96,7 @@ export default function BlogShow({ post }: Props) {
                             )}
                             <h1 className="text-5xl font-bold mb-6">{post.title}</h1>
                             <div className="flex items-center gap-4">
-                                {post.author.avatar ? (
+                                {post.author?.avatar ? (
                                     <img
                                         src={post.author.avatar}
                                         alt={post.author.name}
@@ -104,11 +104,11 @@ export default function BlogShow({ post }: Props) {
                                     />
                                 ) : (
                                     <div className="w-12 h-12 rounded-full bg-white text-emerald-700 flex items-center justify-center text-lg font-semibold">
-                                        {post.author.name.charAt(0)}
+                                        {(post.author?.name || 'Unknown').charAt(0)}
                                     </div>
                                 )}
                                 <div>
-                                    <div className="font-semibold">{post.author.name}</div>
+                                    <div className="font-semibold">{post.author?.name || 'Unknown'}</div>
                                     <div className="text-sm text-indigo-100">
                                         {post.published_at} · {post.views_count} views
                                     </div>
@@ -154,7 +154,7 @@ export default function BlogShow({ post }: Props) {
                         <div className="mt-12 pt-8 border-t border-gray-200">
                             <h3 className="text-xl font-bold text-gray-900 mb-4">About the Author</h3>
                             <div className="flex items-start gap-4">
-                                {post.author.avatar ? (
+                                {post.author?.avatar ? (
                                     <img
                                         src={post.author.avatar}
                                         alt={post.author.name}
@@ -162,12 +162,12 @@ export default function BlogShow({ post }: Props) {
                                     />
                                 ) : (
                                     <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center text-2xl text-emerald-600 font-semibold">
-                                        {post.author.name.charAt(0)}
+                                        {(post.author?.name || 'Unknown').charAt(0)}
                                     </div>
                                 )}
                                 <div className="flex-1">
-                                    <h4 className="font-semibold text-lg text-gray-900">{post.author.name}</h4>
-                                    {post.author.bio && <p className="text-gray-600 mt-2">{post.author.bio}</p>}
+                                    <h4 className="font-semibold text-lg text-gray-900">{post.author?.name || 'Unknown'}</h4>
+                                    {post.author?.bio && <p className="text-gray-600 mt-2">{post.author.bio}</p>}
                                 </div>
                             </div>
                         </div>

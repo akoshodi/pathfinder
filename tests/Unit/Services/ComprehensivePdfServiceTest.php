@@ -92,7 +92,7 @@ it('generates career fit PDF successfully', function () {
 
     $this->careerFitService->shouldReceive('analyzeCareerFit')
         ->once()
-        ->with($this->user)
+        ->with(Mockery::on(fn ($u) => $u instanceof User && $u->id === $this->user->id))
         ->andReturn($mockAnalysis);
 
     $path = $this->service->generateCareerFitPdf($this->user->id);
@@ -106,7 +106,7 @@ it('generates career fit PDF successfully', function () {
 it('throws exception when user has not completed all assessments', function () {
     $this->careerFitService->shouldReceive('analyzeCareerFit')
         ->once()
-        ->with($this->user)
+        ->with(Mockery::on(fn ($u) => $u instanceof User && $u->id === $this->user->id))
         ->andThrow(new Exception('User must complete all assessments'));
 
     $this->service->generateCareerFitPdf($this->user->id);
@@ -157,6 +157,7 @@ it('generates PDF with correct filename format', function () {
 
     $this->careerFitService->shouldReceive('analyzeCareerFit')
         ->once()
+        ->with(Mockery::type(User::class))
         ->andReturn($mockAnalysis);
 
     $path = $this->service->generateCareerFitPdf($this->user->id);

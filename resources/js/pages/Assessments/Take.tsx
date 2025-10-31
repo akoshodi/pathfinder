@@ -216,7 +216,7 @@ export default function AssessmentsTake({
 
                         {/* Answer Options */}
                         <div className="space-y-3">
-                            {currentQuestion.options.map((option) => {
+                            {(Array.isArray(currentQuestion.options) ? currentQuestion.options : []).map((option) => {
                                 const isSelected =
                                     answers[currentQuestion.id] ===
                                     option.value;

@@ -14,8 +14,10 @@ class UserAssessmentResponse extends Model
         'attempt_id',
         'question_id',
         'response_value',
+        'response_text',
         'response_score',
         'time_spent_seconds',
+        'question_category',
     ];
 
     protected function casts(): array
@@ -23,6 +25,7 @@ class UserAssessmentResponse extends Model
         return [
             'response_score' => 'integer',
             'time_spent_seconds' => 'integer',
+            'response_value' => 'string',
         ];
     }
 

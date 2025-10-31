@@ -26,7 +26,7 @@ it('shows incomplete assessments message when not all assessments completed', fu
     $response->assertOk()
         ->assertInertia(fn ($page) => $page
             ->component('Assessments/CareerFit')
-            ->has('hasRequiredAssessments', false)
+            ->where('hasRequiredAssessments', false)
             ->has('requiredAssessments')
         );
 });
@@ -78,7 +78,7 @@ it('displays career fit analysis when all assessments completed', function () {
     $response->assertOk()
         ->assertInertia(fn ($page) => $page
             ->component('Assessments/CareerFit')
-            ->has('hasRequiredAssessments', true)
+            ->where('hasRequiredAssessments', true)
             ->has('analysis')
             ->has('analysis.profile')
             ->has('analysis.career_matches')

@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\SettingsController as AdminSettingsController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\AlumniController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\BlogPostController;
@@ -297,6 +299,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('resources', \App\Http\Controllers\Admin\ResourceController::class);
         Route::resource('competitions', \App\Http\Controllers\Admin\CompetitionController::class);
         Route::resource('blog-posts', \App\Http\Controllers\Admin\BlogPostController::class);
+        Route::resource('users', AdminUserController::class);
 
         // Assessment Management
         Route::get('/assessments/attempts', [\App\Http\Controllers\Admin\AssessmentAdminController::class, 'attempts'])->name('assessments.attempts');
@@ -307,8 +310,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/assessments/reports/export', [\App\Http\Controllers\Admin\AssessmentAdminController::class, 'exportReports'])->name('assessments.reports.export');
 
         // Placeholders for future admin routes
-        Route::redirect('/users', '/admin/assessments/attempts');
-        Route::redirect('/settings', '/admin/assessments/reports');
+        // Route::redirect('/users', '/admin/assessments/attempts');
+        Route::get('/settings', [AdminSettingsController::class, 'index'])->name('settings.index');
+        // Route::redirect('/settings', '/admin/assessments/reports');
     });
 });
 

@@ -15,6 +15,18 @@ pest()->extend(Tests\TestCase::class)
     ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
     ->in('Feature');
 
+// Ensure Unit tests that touch the database or framework are bound to the Laravel TestCase too
+uses(Tests\TestCase::class)->in('Unit');
+uses(Illuminate\Foundation\Testing\RefreshDatabase::class)->in('Unit');
+
+// Ensure roles exist for tests that assign roles
+beforeEach(function () {
+    if (class_exists(\Spatie\Permission\Models\Role::class)) {
+        \Spatie\Permission\Models\Role::findOrCreate('super-admin', 'web');
+        \Spatie\Permission\Models\Role::findOrCreate('admin', 'web');
+    }
+});
+
 /*
 |--------------------------------------------------------------------------
 | Expectations

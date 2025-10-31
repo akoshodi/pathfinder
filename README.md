@@ -201,14 +201,10 @@ Real-time search suggestions powered by a dedicated API endpoint with debouncing
 
 ## PDF Export Setup
 
-Pathfinder supports exporting assessment results to PDF. The controller will:
+Pathfinder supports exporting assessment results to PDF.
 
-- Prefer DomPDF (barryvdh/laravel-dompdf) when available.
-- Fallback to Browsershot (spatie/browsershot) when DomPDF is unavailable or fails.
-
-### Option A: DomPDF (default)
-
-DomPDF is already required in composer. If you encounter rendering limitations (complex CSS, fonts, or RTL), consider Browsershot below.
+- Production: uses Spatie Laravel PDF (spatie/laravel-pdf) to render views to PDF and save to storage.
+- Tests: avoid heavy PDF engines by writing minimal valid PDF bytes to disk so assertions can verify headers and downloads deterministically.
 
 ### Option B: Browsershot (Headless Chrome)
 
@@ -246,7 +242,7 @@ BROWSERSHOT_CHROME_PATH=/usr/bin/chromium-browser
 
 Visit: `/assessments/{attemptId}/export/pdf`
 
-If DomPDF throws or is missing, the app automatically tries Browsershot. If both are missing or fail, you’ll see a 503 explaining PDF isn’t currently available.
+Note: Browsershot (spatie/browsershot) is available for high-fidelity rendering if you choose to adopt it, but it is not used by default.
 
 ### Consistent Design System
 - Emerald/teal color palette throughout
