@@ -68,11 +68,10 @@ class UniversityController extends Controller
             'name' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:universities',
             'description' => 'nullable|string',
-            'location' => 'nullable|string|max:255',
+            'location' => 'required|string|max:255',
             'type' => 'required|string|in:Public,Private',
             'website' => 'nullable|url|max:255',
             'logo_url' => 'nullable|url|max:500',
-            'established_year' => 'nullable|integer|min:1800|max:'.date('Y'),
             'ranking' => 'nullable|integer|min:1',
             'is_featured' => 'boolean',
         ]);
@@ -80,6 +79,12 @@ class UniversityController extends Controller
         // Generate slug from name if not provided
         if (empty($validated['slug'])) {
             $validated['slug'] = \Illuminate\Support\Str::slug($validated['name']);
+        }
+
+        // Map logo_url to logo column if provided
+        if (array_key_exists('logo_url', $validated) && ! empty($validated['logo_url'])) {
+            $validated['logo'] = $validated['logo_url'];
+            unset($validated['logo_url']);
         }
 
         University::create($validated);
@@ -117,11 +122,10 @@ class UniversityController extends Controller
             'name' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:universities,slug,'.$university->id,
             'description' => 'nullable|string',
-            'location' => 'nullable|string|max:255',
+            'location' => 'required|string|max:255',
             'type' => 'required|string|in:Public,Private',
             'website' => 'nullable|url|max:255',
             'logo_url' => 'nullable|url|max:500',
-            'established_year' => 'nullable|integer|min:1800|max:'.date('Y'),
             'ranking' => 'nullable|integer|min:1',
             'is_featured' => 'boolean',
         ]);
@@ -129,6 +133,12 @@ class UniversityController extends Controller
         // Generate slug from name if not provided
         if (empty($validated['slug'])) {
             $validated['slug'] = \Illuminate\Support\Str::slug($validated['name']);
+        }
+
+        // Map logo_url to logo column if provided
+        if (array_key_exists('logo_url', $validated) && ! empty($validated['logo_url'])) {
+            $validated['logo'] = $validated['logo_url'];
+            unset($validated['logo_url']);
         }
 
         $university->update($validated);
