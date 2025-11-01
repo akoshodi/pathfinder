@@ -110,6 +110,7 @@ class UniversitiesResponsiveFeatureTest extends TestCase
     {
         $data = [
             'name' => 'New University',
+            'slug' => 'new-university',
             'description' => 'A test university',
             'location' => 'Boston',
             'type' => 'university',
@@ -142,13 +143,15 @@ class UniversitiesResponsiveFeatureTest extends TestCase
     {
         $university = University::factory()->create([
             'location' => 'Old Location',
+            'type' => 'university',
         ]);
 
         $data = [
             'name' => $university->name,
+            'slug' => $university->slug,
             'description' => $university->description,
             'location' => 'New Location',
-            'type' => $university->type,
+            'type' => 'university',
         ];
 
         $response = $this->actingAs($this->user)
@@ -172,7 +175,7 @@ class UniversitiesResponsiveFeatureTest extends TestCase
             ->delete("/admin/universities/{$university->id}");
 
         $response->assertRedirect('/admin/universities');
-        $this->assertDatabaseMissing('universities', [
+        $this->assertSoftDeleted('universities', [
             'id' => $university->id,
         ]);
     }
@@ -235,13 +238,11 @@ class UniversitiesResponsiveFeatureTest extends TestCase
         $response = $this->actingAs($this->user)->get('/admin/universities');
 
         $response->assertInertia(fn ($page) => $page
-            ->has('universities', fn ($universities) => $universities
-                ->has('data', 5)
-                ->has('current_page')
-                ->has('last_page')
-                ->has('per_page')
-                ->has('total')
-            )
+            ->has('universities.data', 5)
+            ->has('universities.current_page')
+            ->has('universities.last_page')
+            ->has('universities.per_page')
+            ->has('universities.total')
         );
     }
 }

@@ -20,41 +20,29 @@ type AttemptFilters = {
 }
 
 interface AttemptsPageProps {
-  filters?: AttemptFilters
-  attempts: {
-    data: AttemptItem[]
-    current_page: number
-    last_page: number
-    per_page: number
-    total: number
-  }
+  filters?: Record<string, any>
+  attempts?: Record<string, any>
 }
 
-export default function AttemptsPage({ filters, attempts }: AttemptsPageProps) {
-  const safeFilters: AttemptFilters = (filters ?? {}) as AttemptFilters
-  const safeAttempts: AttemptsPageProps['attempts'] = attempts ?? {
-    data: [],
-    current_page: 1,
-    last_page: 1,
-    per_page: 0,
-    total: 0,
-  }
+export default function AttemptsPage(props: AttemptsPageProps) {
+  const filters = props?.filters || {}
+  const attempts = props?.attempts || { data: [], current_page: 1, last_page: 1, per_page: 0, total: 0 }
 
-  const [status, setStatus] = useState(safeFilters.status ?? '')
-  const [search, setSearch] = useState(safeFilters.search ?? '')
-  const [sort, setSort] = useState(safeFilters.sort ?? '')
-  const [direction, setDirection] = useState<('asc' | 'desc')>(
-    safeFilters.direction === 'asc' || safeFilters.direction === 'desc' ? (safeFilters.direction as 'asc' | 'desc') : 'desc'
+  const [status, setStatus] = useState<string>(String(filters?.status || ''))
+  const [search, setSearch] = useState<string>(String(filters?.search || ''))
+  const [sortBy, setSortBy] = useState<string>(String(filters?.sort || ''))
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>(
+    (filters?.direction === 'asc' || filters?.direction === 'desc') ? filters.direction : 'desc'
   )
 
-  const rows = Array.isArray(safeAttempts.data) ? safeAttempts.data : []
+  const rows = Array.isArray(attempts?.data) ? attempts.data : []
 
   const buildQuery = (extra?: Record<string, string | number>): string => {
     const qs = new URLSearchParams()
     if (status) qs.append('status', status)
     if (search) qs.append('search', search)
-    if (sort) qs.append('sort', sort)
-    if (direction) qs.append('direction', direction)
+    if (sortBy) qs.append('sort', sortBy)
+    if (sortDir) qs.append('direction', sortDir)
     if (extra) {
       Object.entries(extra).forEach(([k, v]) => {
         if (v !== undefined && v !== null && String(v).length > 0) {
@@ -70,8 +58,8 @@ export default function AttemptsPage({ filters, attempts }: AttemptsPageProps) {
     const qs = new URLSearchParams()
     if (status) qs.set('status', status)
     if (search) qs.set('search', search)
-    if (sort) qs.set('sort', sort)
-    if (direction) qs.set('direction', direction)
+    if (sortBy) qs.set('sort', sortBy)
+    if (sortDir) qs.set('direction', sortDir)
     router.get(`/admin/assessments/attempts${qs.toString() ? `?${qs.toString()}` : ''}`,
       {}, { preserveState: true, preserveScroll: true, replace: true })
   }
@@ -79,17 +67,17 @@ export default function AttemptsPage({ filters, attempts }: AttemptsPageProps) {
   const onReset = () => {
     setStatus('')
     setSearch('')
-    setSort('')
-    setDirection('desc')
+    setSortBy('')
+    setSortDir('desc')
     router.get('/admin/assessments/attempts', {}, { preserveState: true, preserveScroll: true, replace: true })
   }
 
   const toggleSort = (column: string) => {
-    if (sort === column) {
-      setDirection(direction === 'asc' ? 'desc' : 'asc')
+    if (sortBy === column) {
+      setSortDir(sortDir === 'asc' ? 'desc' : 'asc')
     } else {
-      setSort(column)
-      setDirection('desc')
+      setSortBy(column)
+      setSortDir('desc')
     }
     setTimeout(onFilter, 0)
   }
@@ -98,13 +86,13 @@ export default function AttemptsPage({ filters, attempts }: AttemptsPageProps) {
 
   const pager = useMemo(() => {
     const pages: number[] = []
-    const current = safeAttempts.current_page ?? 1
-    const last = safeAttempts.last_page ?? 1
+    const current = attempts?.current_page ?? 1
+    const last = attempts?.last_page ?? 1
     const start = Math.max(1, current - 2)
     const end = Math.min(last, current + 2)
     for (let i = start; i <= end; i++) pages.push(i)
     return pages
-  }, [safeAttempts.current_page, safeAttempts.last_page])
+  }, [attempts?.current_page, attempts?.last_page])
 
   return (
     <AdminLayout title="Assessment Attempts" breadcrumbs={[{ label: 'Admin' }, { label: 'Assessments' }, { label: 'Attempts' }]}>
@@ -148,10 +136,10 @@ export default function AttemptsPage({ filters, attempts }: AttemptsPageProps) {
               <th className="px-4 py-2 text-left text-sm font-semibold text-foreground">Assessment</th>
               <th className="px-4 py-2 text-left text-sm font-semibold text-foreground">Status</th>
               <th className="px-4 py-2 text-left text-sm font-semibold text-foreground cursor-pointer" onClick={() => toggleSort('started_at')}>
-                Started {sort === 'started_at' ? (direction === 'asc' ? '▲' : '▼') : ''}
+                Started {sortBy === 'started_at' ? (sortDir === 'asc' ? '▲' : '▼') : ''}
               </th>
               <th className="px-4 py-2 text-left text-sm font-semibold text-foreground cursor-pointer" onClick={() => toggleSort('completed_at')}>
-                Completed {sort === 'completed_at' ? (direction === 'asc' ? '▲' : '▼') : ''}
+                Completed {sortBy === 'completed_at' ? (sortDir === 'asc' ? '▲' : '▼') : ''}
               </th>
               <th className="px-4 py-2 text-left text-sm font-semibold text-foreground">Progress</th>
             </tr>
@@ -194,9 +182,9 @@ export default function AttemptsPage({ filters, attempts }: AttemptsPageProps) {
       <div className="mt-4 flex items-center justify-between text-sm">
         <div>
           {(() => {
-      const current = safeAttempts.current_page ?? 1
-      const perPage = safeAttempts.per_page ?? 0
-      const total = safeAttempts.total ?? 0
+            const current = attempts?.current_page ?? 1
+            const perPage = attempts?.per_page ?? 0
+            const total = attempts?.total ?? 0
             const start = total > 0 ? (current - 1) * perPage + 1 : 0
             const end = Math.min(current * perPage, total)
             return (
@@ -207,10 +195,10 @@ export default function AttemptsPage({ filters, attempts }: AttemptsPageProps) {
           })()}
         </div>
         <div className="flex items-center gap-2">
-          {(safeAttempts.current_page ?? 1) > 1 && (
+          {(attempts?.current_page ?? 1) > 1 && (
             <Link
               className="rounded border px-2 py-1"
-              href={`/admin/assessments/attempts${buildQuery({ page: String((safeAttempts.current_page ?? 1) - 1) })}`}
+              href={`/admin/assessments/attempts${buildQuery({ page: String((attempts?.current_page ?? 1) - 1) })}`}
               preserveScroll
               preserveState
             >
@@ -221,7 +209,7 @@ export default function AttemptsPage({ filters, attempts }: AttemptsPageProps) {
             <Link
               key={p}
               className={
-                'rounded border px-2 py-1 ' + (p === (safeAttempts.current_page ?? 1) ? 'bg-blue-600 text-white' : '')
+                'rounded border px-2 py-1 ' + (p === (attempts?.current_page ?? 1) ? 'bg-blue-600 text-white' : '')
               }
               href={`/admin/assessments/attempts${buildQuery({ page: String(p) })}`}
               preserveScroll
@@ -230,10 +218,10 @@ export default function AttemptsPage({ filters, attempts }: AttemptsPageProps) {
               {p}
             </Link>
           ))}
-          {(safeAttempts.current_page ?? 1) < (safeAttempts.last_page ?? 1) && (
+          {(attempts?.current_page ?? 1) < (attempts?.last_page ?? 1) && (
             <Link
               className="rounded border px-2 py-1"
-              href={`/admin/assessments/attempts${buildQuery({ page: String((safeAttempts.current_page ?? 1) + 1) })}`}
+              href={`/admin/assessments/attempts${buildQuery({ page: String((attempts?.current_page ?? 1) + 1) })}`}
               preserveScroll
               preserveState
             >

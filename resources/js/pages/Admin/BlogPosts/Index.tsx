@@ -44,13 +44,13 @@ export default function Index({ blogPosts, filters = {} }: Props) {
 
     const columns = [
         { key: 'title', label: 'Title', sortable: true },
-        { key: 'author', label: 'Author', render: (p: BlogPost) => p.author?.name || 'N/A' },
+        { key: 'author.name', label: 'Author' },
         {
             key: 'status',
             label: 'Status',
-            render: (p: BlogPost) => (
-                <span className={`inline-flex rounded-full px-2 text-xs font-semibold ${p.status === 'published' ? 'bg-green-100 text-green-800' : p.status === 'draft' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}`}>
-                    {p.status}
+            render: (_value: any, item: BlogPost) => (
+                <span className={`inline-flex rounded-full px-2 text-xs font-semibold ${item.status === 'published' ? 'bg-green-100 text-green-800' : item.status === 'draft' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}`}>
+                    {item.status}
                 </span>
             ),
         },

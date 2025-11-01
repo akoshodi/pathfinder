@@ -1,154 +1,94 @@
 <?php
 
-namespace Tests\Unit\Components;
+it('responsive mode accepts valid values', function () {
+    $validModes = ['table', 'cards', 'auto'];
 
-use PHPUnit\Framework\TestCase;
-
-class DataTableResponsiveTest extends TestCase
-{
-    /**
-     * Test that responsive mode prop is properly typed
-     */
-    public function test_responsive_mode_accepts_valid_values(): void
-    {
-        $validModes = ['table', 'cards', 'auto'];
-
-        foreach ($validModes as $mode) {
-            $this->assertIn($mode, $validModes);
-        }
+    foreach ($validModes as $mode) {
+        expect($mode)->toBeIn($validModes);
     }
+});
 
-    /**
-     * Test mobile breakpoint constant
-     */
-    public function test_mobile_breakpoint_is_768px(): void
-    {
-        $mobileBreakpoint = 768;
+it('mobile breakpoint is 768px', function () {
+    expect(768)->toBe(768);
+});
 
-        $this->assertEquals(768, $mobileBreakpoint);
-    }
+it('card view used for mobile with auto mode', function () {
+    $windowWidth = 375;
+    $mobileBreakpoint = 768;
+    $responsiveMode = 'auto';
 
-    /**
-     * Test that cards view is used for mobile with auto mode
-     */
-    public function test_card_view_used_for_mobile_auto_mode(): void
-    {
-        $windowWidth = 375; // Mobile
-        $mobileBreakpoint = 768;
-        $responsiveMode = 'auto';
+    $shouldUseCardView = ($responsiveMode === 'cards') || 
+                        ($responsiveMode === 'auto' && $windowWidth < $mobileBreakpoint);
 
-        $shouldUseCardView = ($responsiveMode === 'cards') || 
-                            ($responsiveMode === 'auto' && $windowWidth < $mobileBreakpoint);
+    expect($shouldUseCardView)->toBeTrue();
+});
 
-        $this->assertTrue($shouldUseCardView);
-    }
+it('table view used for desktop with auto mode', function () {
+    $windowWidth = 1200;
+    $mobileBreakpoint = 768;
+    $responsiveMode = 'auto';
 
-    /**
-     * Test that table view is used for desktop with auto mode
-     */
-    public function test_table_view_used_for_desktop_auto_mode(): void
-    {
-        $windowWidth = 1200; // Desktop
-        $mobileBreakpoint = 768;
-        $responsiveMode = 'auto';
+    $shouldUseCardView = ($responsiveMode === 'cards') || 
+                        ($responsiveMode === 'auto' && $windowWidth < $mobileBreakpoint);
 
-        $shouldUseCardView = ($responsiveMode === 'cards') || 
-                            ($responsiveMode === 'auto' && $windowWidth < $mobileBreakpoint);
+    expect($shouldUseCardView)->toBeFalse();
+});
 
-        $this->assertFalse($shouldUseCardView);
-    }
+it('cards mode forces card view', function () {
+    $responsiveMode = 'cards';
+    $shouldUseCardView = $responsiveMode === 'cards';
 
-    /**
-     * Test that cards mode always shows cards regardless of screen size
-     */
-    public function test_cards_mode_forces_card_view(): void
-    {
-        $responsiveMode = 'cards';
+    expect($shouldUseCardView)->toBeTrue();
+});
 
-        $shouldUseCardView = $responsiveMode === 'cards';
+it('table mode forces table view', function () {
+    $responsiveMode = 'table';
+    $shouldUseCardView = $responsiveMode === 'table' ? false : true;
 
-        $this->assertTrue($shouldUseCardView);
-    }
+    expect($shouldUseCardView)->toBeFalse();
+});
 
-    /**
-     * Test that table mode always shows table regardless of screen size
-     */
-    public function test_table_mode_forces_table_view(): void
-    {
-        $responsiveMode = 'table';
+it('responsive padding classes included', function () {
+    $mobilePadding = 'px-4';
+    $desktopPadding = 'md:px-6';
+    $responsivePaddingClasses = "$mobilePadding $desktopPadding";
 
-        $shouldUseCardView = $responsiveMode === 'table' ? false : true;
+    expect($responsivePaddingClasses)->toContain('px-4');
+    expect($responsivePaddingClasses)->toContain('md:px-6');
+});
 
-        $this->assertFalse($shouldUseCardView);
-    }
+it('table has full width', function () {
+    $tableClasses = 'w-full table-auto divide-y divide-border';
 
-    /**
-     * Test responsive padding calculation
-     */
-    public function test_responsive_padding_classes(): void
-    {
-        $mobilePadding = 'px-4';
-        $desktopPadding = 'md:px-6';
+    expect($tableClasses)->toContain('w-full');
+    expect($tableClasses)->toContain('table-auto');
+});
 
-        $responsivePaddingClasses = "$mobilePadding $desktopPadding";
+it('overflow x auto for horizontal scroll', function () {
+    $containerClasses = 'relative w-full overflow-x-auto';
 
-        $this->assertStringContainsString('px-4', $responsivePaddingClasses);
-        $this->assertStringContainsString('md:px-6', $responsivePaddingClasses);
-    }
+    expect($containerClasses)->toContain('overflow-x-auto');
+    expect($containerClasses)->toContain('w-full');
+});
 
-    /**
-     * Test table width constraint
-     */
-    public function test_table_has_full_width(): void
-    {
-        $tableClasses = 'w-full table-auto divide-y divide-border';
+it('line clamp for text overflow', function () {
+    $cellClasses = 'px-3 py-4 sm:px-4 text-sm text-foreground line-clamp-2';
 
-        $this->assertStringContainsString('w-full', $tableClasses);
-        $this->assertStringContainsString('table-auto', $tableClasses);
-    }
+    expect($cellClasses)->toContain('line-clamp-2');
+});
 
-    /**
-     * Test overflow handling
-     */
-    public function test_overflow_x_auto_for_horizontal_scroll(): void
-    {
-        $containerClasses = 'relative w-full overflow-x-auto';
+it('card layout structure', function () {
+    $cardClasses = 'rounded-lg bg-card border border-border p-4 shadow-sm';
 
-        $this->assertStringContainsString('overflow-x-auto', $containerClasses);
-        $this->assertStringContainsString('w-full', $containerClasses);
-    }
+    expect($cardClasses)->toContain('rounded-lg');
+    expect($cardClasses)->toContain('bg-card');
+    expect($cardClasses)->toContain('border');
+    expect($cardClasses)->toContain('p-4');
+});
 
-    /**
-     * Test line clamping for long text
-     */
-    public function test_line_clamp_for_text_overflow(): void
-    {
-        $cellClasses = 'px-3 py-4 sm:px-4 text-sm text-foreground line-clamp-2';
+it('responsive hover state', function () {
+    $rowClasses = 'hover:bg-muted/50 transition-colors';
 
-        $this->assertStringContainsString('line-clamp-2', $cellClasses);
-    }
-
-    /**
-     * Test card layout structure
-     */
-    public function test_card_layout_structure(): void
-    {
-        $cardClasses = 'rounded-lg bg-card border border-border p-4 shadow-sm';
-
-        $this->assertStringContainsString('rounded-lg', $cardClasses);
-        $this->assertStringContainsString('bg-card', $cardClasses);
-        $this->assertStringContainsString('border', $cardClasses);
-        $this->assertStringContainsString('p-4', $cardClasses);
-    }
-
-    /**
-     * Test responsive hover state
-     */
-    public function test_responsive_hover_state(): void
-    {
-        $rowClasses = 'hover:bg-muted/50 transition-colors';
-
-        $this->assertStringContainsString('hover:bg-muted', $rowClasses);
-        $this->assertStringContainsString('transition-colors', $rowClasses);
-    }
-}
+    expect($rowClasses)->toContain('hover:bg-muted');
+    expect($rowClasses)->toContain('transition-colors');
+});

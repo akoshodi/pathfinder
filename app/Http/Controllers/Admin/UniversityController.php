@@ -66,6 +66,7 @@ class UniversityController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'slug' => 'nullable|string|max:255|unique:universities',
             'description' => 'nullable|string',
             'location' => 'nullable|string|max:255',
             'type' => 'required|string|in:university,college,institute,school',
@@ -75,6 +76,11 @@ class UniversityController extends Controller
             'ranking' => 'nullable|integer|min:1',
             'is_featured' => 'boolean',
         ]);
+
+        // Generate slug from name if not provided
+        if (empty($validated['slug'])) {
+            $validated['slug'] = \Illuminate\Support\Str::slug($validated['name']);
+        }
 
         University::create($validated);
 
@@ -109,6 +115,7 @@ class UniversityController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'slug' => 'nullable|string|max:255|unique:universities,slug,'.$university->id,
             'description' => 'nullable|string',
             'location' => 'nullable|string|max:255',
             'type' => 'required|string|in:university,college,institute,school',
@@ -118,6 +125,11 @@ class UniversityController extends Controller
             'ranking' => 'nullable|integer|min:1',
             'is_featured' => 'boolean',
         ]);
+
+        // Generate slug from name if not provided
+        if (empty($validated['slug'])) {
+            $validated['slug'] = \Illuminate\Support\Str::slug($validated['name']);
+        }
 
         $university->update($validated);
 

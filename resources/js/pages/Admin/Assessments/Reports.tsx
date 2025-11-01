@@ -19,41 +19,29 @@ type ReportFilters = {
 }
 
 interface ReportsPageProps {
-  filters?: ReportFilters
-  reports: {
-    data: ReportItem[]
-    current_page: number
-    last_page: number
-    per_page: number
-    total: number
-  }
+  filters?: Record<string, any>
+  reports?: Record<string, any>
 }
 
-export default function ReportsPage({ filters, reports }: ReportsPageProps) {
-  const safeFilters: ReportFilters = (filters ?? {}) as ReportFilters
-  const safeReports: ReportsPageProps['reports'] = reports ?? {
-    data: [],
-    current_page: 1,
-    last_page: 1,
-    per_page: 0,
-    total: 0,
-  }
+export default function ReportsPage(props: ReportsPageProps) {
+  const filters = props?.filters || {}
+  const reports = props?.reports || { data: [], current_page: 1, last_page: 1, per_page: 0, total: 0 }
 
-  const [type, setType] = useState(safeFilters.type ?? '')
-  const [search, setSearch] = useState(safeFilters.search ?? '')
-  const [sort, setSort] = useState(safeFilters.sort ?? '')
-  const [direction, setDirection] = useState<('asc' | 'desc')>(
-    safeFilters.direction === 'asc' || safeFilters.direction === 'desc' ? (safeFilters.direction as 'asc' | 'desc') : 'desc'
+  const [type, setType] = useState<string>(String(filters?.type || ''))
+  const [search, setSearch] = useState<string>(String(filters?.search || ''))
+  const [sortBy, setSortBy] = useState<string>(String(filters?.sort || ''))
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>(
+    (filters?.direction === 'asc' || filters?.direction === 'desc') ? filters.direction : 'desc'
   )
 
-  const rows = Array.isArray(safeReports.data) ? safeReports.data : []
+  const rows = Array.isArray(reports?.data) ? reports.data : []
 
   const buildQuery = (extra?: Record<string, string | number>): string => {
     const qs = new URLSearchParams()
     if (type) qs.append('type', type)
     if (search) qs.append('search', search)
-    if (sort) qs.append('sort', sort)
-    if (direction) qs.append('direction', direction)
+  if (sortBy) qs.append('sort', sortBy)
+  if (sortDir) qs.append('direction', sortDir)
     if (extra) {
       Object.entries(extra).forEach(([k, v]) => {
         if (v !== undefined && v !== null && String(v).length > 0) {
@@ -69,8 +57,8 @@ export default function ReportsPage({ filters, reports }: ReportsPageProps) {
     const qs = new URLSearchParams()
     if (type) qs.set('type', type)
     if (search) qs.set('search', search)
-    if (sort) qs.set('sort', sort)
-    if (direction) qs.set('direction', direction)
+  if (sortBy) qs.set('sort', sortBy)
+  if (sortDir) qs.set('direction', sortDir)
     router.get(`/admin/assessments/reports${qs.toString() ? `?${qs.toString()}` : ''}`,
       {}, { preserveState: true, preserveScroll: true, replace: true })
   }
@@ -78,17 +66,17 @@ export default function ReportsPage({ filters, reports }: ReportsPageProps) {
   const onReset = () => {
     setType('')
     setSearch('')
-    setSort('')
-    setDirection('desc')
+  setSortBy('')
+  setSortDir('desc')
     router.get('/admin/assessments/reports', {}, { preserveState: true, preserveScroll: true, replace: true })
   }
 
   const toggleSort = (column: string) => {
-    if (sort === column) {
-      setDirection(direction === 'asc' ? 'desc' : 'asc')
+    if (sortBy === column) {
+      setSortDir(sortDir === 'asc' ? 'desc' : 'asc')
     } else {
-      setSort(column)
-      setDirection('desc')
+      setSortBy(column)
+      setSortDir('desc')
     }
     setTimeout(onFilter, 0)
   }
@@ -97,13 +85,13 @@ export default function ReportsPage({ filters, reports }: ReportsPageProps) {
 
   const pager = useMemo(() => {
     const pages: number[] = []
-  const current = safeReports.current_page ?? 1
-  const last = safeReports.last_page ?? 1
+    const current = reports?.current_page ?? 1
+    const last = reports?.last_page ?? 1
     const start = Math.max(1, current - 2)
     const end = Math.min(last, current + 2)
     for (let i = start; i <= end; i++) pages.push(i)
     return pages
-  }, [safeReports.current_page, safeReports.last_page])
+  }, [reports?.current_page, reports?.last_page])
 
   return (
     <AdminLayout title="Assessment Reports" breadcrumbs={[{ label: 'Admin' }, { label: 'Assessments' }, { label: 'Reports' }]}>
@@ -137,7 +125,7 @@ export default function ReportsPage({ filters, reports }: ReportsPageProps) {
       </div>
 
       <div className="overflow-x-auto rounded border border-border">
-        <table className="min-w-full divide-y divide-border bg-card">
+        <table className="min-w-full divide-y divide-border bg-card" data-testid="reports-table">
           <thead className="bg-muted">
             <tr>
               <th className="px-4 py-2 text-left text-sm font-semibold text-foreground">Title</th>
@@ -145,26 +133,26 @@ export default function ReportsPage({ filters, reports }: ReportsPageProps) {
               <th className="px-4 py-2 text-left text-sm font-semibold text-foreground">Assessment</th>
               <th className="px-4 py-2 text-left text-sm font-semibold">User</th>
               <th className="px-4 py-2 text-left text-sm font-semibold cursor-pointer" onClick={() => toggleSort('generated_at')}>
-                Generated {sort === 'generated_at' ? (direction === 'asc' ? '▲' : '▼') : ''}
+                Generated {sortBy === 'generated_at' ? (sortDir === 'asc' ? '▲' : '▼') : ''}
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y">
+          <tbody className="divide-y divide-border">
             {rows.map((row) => (
-              <tr key={row.id} className="hover:bg-gray-50">
+              <tr key={row.id} className="hover:bg-muted/50">
                 <td className="px-4 py-2">
-                  <div className="font-medium">{row.title ?? '-'}</div>
+                  <div className="font-medium text-foreground">{row.title ?? '-'}</div>
                 </td>
-                <td className="px-4 py-2 text-sm">{row.report_type ?? '-'}</td>
+                <td className="px-4 py-2 text-sm text-foreground">{row.report_type ?? '-'}</td>
                 <td className="px-4 py-2">
-                  <div className="font-medium">{row.assessment?.name ?? '-'}</div>
-                  <div className="text-xs text-gray-500">{row.assessment?.slug ?? ''}</div>
+                  <div className="font-medium text-foreground">{row.assessment?.name ?? '-'}</div>
+                  <div className="text-xs text-muted-foreground">{row.assessment?.slug ?? ''}</div>
                 </td>
                 <td className="px-4 py-2">
-                  <div className="font-medium">{row.user?.name ?? '-'}</div>
-                  <div className="text-xs text-gray-500">{row.user?.email ?? ''}</div>
+                  <div className="font-medium text-foreground">{row.user?.name ?? '-'}</div>
+                  <div className="text-xs text-muted-foreground">{row.user?.email ?? ''}</div>
                 </td>
-                <td className="px-4 py-2 text-sm">{row.generated_at ?? '-'}</td>
+                <td className="px-4 py-2 text-sm text-foreground">{row.generated_at ?? '-'}</td>
               </tr>
             ))}
           </tbody>
@@ -174,9 +162,9 @@ export default function ReportsPage({ filters, reports }: ReportsPageProps) {
       <div className="mt-4 flex items-center justify-between text-sm">
         <div>
           {(() => {
-            const current = safeReports.current_page ?? 1
-            const perPage = safeReports.per_page ?? 0
-            const total = safeReports.total ?? 0
+            const current = reports?.current_page ?? 1
+            const perPage = reports?.per_page ?? 0
+            const total = reports?.total ?? 0
             const start = total > 0 ? (current - 1) * perPage + 1 : 0
             const end = Math.min(current * perPage, total)
             return (
@@ -187,10 +175,10 @@ export default function ReportsPage({ filters, reports }: ReportsPageProps) {
           })()}
         </div>
         <div className="flex items-center gap-2">
-          {(safeReports.current_page ?? 1) > 1 && (
+          {(reports?.current_page ?? 1) > 1 && (
             <Link
               className="rounded border px-2 py-1"
-              href={`/admin/assessments/reports${buildQuery({ page: String((safeReports.current_page ?? 1) - 1) })}`}
+              href={`/admin/assessments/reports${buildQuery({ page: String((reports?.current_page ?? 1) - 1) })}`}
               preserveScroll
               preserveState
             >
@@ -201,7 +189,7 @@ export default function ReportsPage({ filters, reports }: ReportsPageProps) {
             <Link
               key={p}
               className={
-                'rounded border px-2 py-1 ' + (p === (safeReports.current_page ?? 1) ? 'bg-blue-600 text-white' : '')
+                'rounded border px-2 py-1 ' + (p === (reports?.current_page ?? 1) ? 'bg-blue-600 text-white' : '')
               }
               href={`/admin/assessments/reports${buildQuery({ page: String(p) })}`}
               preserveScroll
@@ -210,10 +198,10 @@ export default function ReportsPage({ filters, reports }: ReportsPageProps) {
               {p}
             </Link>
           ))}
-          {(safeReports.current_page ?? 1) < (safeReports.last_page ?? 1) && (
+          {(reports?.current_page ?? 1) < (reports?.last_page ?? 1) && (
             <Link
               className="rounded border px-2 py-1"
-              href={`/admin/assessments/reports${buildQuery({ page: String((safeReports.current_page ?? 1) + 1) })}`}
+              href={`/admin/assessments/reports${buildQuery({ page: String((reports?.current_page ?? 1) + 1) })}`}
               preserveScroll
               preserveState
             >
