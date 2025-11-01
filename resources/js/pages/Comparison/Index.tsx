@@ -106,6 +106,18 @@ export default function ComparisonIndex({ comparisonItems, isPublic = false }: P
         return [];
     }, [activeType]);
 
+    // Resolve correct base path for comparable types (handle irregular plurals)
+    const pathForType = (type: string): string => {
+        const t = (type || '').toLowerCase();
+        if (t === 'university') {
+            return 'universities';
+        }
+        if (t === 'company') {
+            return 'companies';
+        }
+        return `${t}s`;
+    };
+
     return (
         <AppLayout>
             <Head title="Compare" />
@@ -292,7 +304,7 @@ export default function ComparisonIndex({ comparisonItems, isPublic = false }: P
                                                 {activeItems.map((item) => (
                                                     <td key={item.id} className="px-6 py-4">
                                                         <Link
-                                                            href={`/${activeType.toLowerCase()}s/${item.comparable.slug}`}
+                                                            href={`/${pathForType(activeType)}/${item.comparable.slug}`}
                                                             className="text-teal-600 hover:text-teal-700 font-semibold"
                                                         >
                                                             View Full Profile →
@@ -309,7 +321,7 @@ export default function ComparisonIndex({ comparisonItems, isPublic = false }: P
                             <div className="bg-white rounded-lg shadow p-6 text-center">
                                 <p className="text-gray-600 mb-4">Want to add more {activeType}s to compare?</p>
                                 <Link
-                                    href={`/${activeType.toLowerCase()}s`}
+                                    href={`/${pathForType(activeType)}`}
                                     className="inline-block px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-semibold"
                                 >
                                     Browse {activeType}s

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\ComparisonItem;
 use App\Models\University;
 use Illuminate\Http\Request;
@@ -15,11 +16,14 @@ class ComparisonController extends Controller
      */
     public function index(Request $request): Response
     {
-        // Public compare via URL query, e.g. /compare?universities=slug-one-vs-slug-two
-        $query = (string) ($request->query('universities') ?? $request->query('colleges') ?? '');
+        // Public compare via URL query
+        // Universities: /compare?universities=slug-one-vs-slug-two (alias: colleges)
+        // Companies: /compare?companies=slug-one-vs-slug-two
+        $universityQuery = (string) ($request->query('universities') ?? $request->query('colleges') ?? '');
+        $companyQuery = (string) ($request->query('companies') ?? '');
 
-        if ($query !== '') {
-            $slugs = collect(preg_split('/-vs-|,/', $query))
+        if ($universityQuery !== '') {
+            $slugs = collect(preg_split('/-vs-|,/', $universityQuery))
                 ->filter()
                 ->values();
 
@@ -40,6 +44,38 @@ class ComparisonController extends Controller
                     'comparable' => $u->only([
                         'id', 'name', 'slug', 'description', 'logo', 'location', 'type', 'ranking',
                         'acceptance_rate', 'tuition', 'students_count', 'campus_setting',
+                    ]),
+                ];
+            });
+
+            return Inertia::render('Comparison/Index', [
+                'comparisonItems' => $items,
+                'isPublic' => true,
+            ]);
+        }
+
+        if ($companyQuery !== '') {
+            $slugs = collect(preg_split('/-vs-|,/', $companyQuery))
+                ->filter()
+                ->values();
+
+            $companies = Company::query()
+                ->whereIn('slug', $slugs)
+                ->get()
+                ->sortBy(function (Company $c) use ($slugs) {
+                    return $slugs->search($c->slug);
+                })
+                ->values();
+
+            $items = $companies->values()->map(function (Company $c, int $idx) {
+                return [
+                    'id' => $c->id, // synthetic id for public compare
+                    'comparable_type' => Company::class,
+                    'comparable_id' => $c->id,
+                    'position' => $idx + 1,
+                    'comparable' => $c->only([
+                        'id', 'name', 'slug', 'description', 'logo', 'location', 'category',
+                        'employees', 'jobs_count', 'internships_count',
                     ]),
                 ];
             });

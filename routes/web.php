@@ -314,6 +314,55 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/settings', [AdminSettingsController::class, 'index'])->name('settings.index');
         // Route::redirect('/settings', '/admin/assessments/reports');
     });
+
+    // Metronic-powered role dashboards (signed-in users)
+    Route::prefix('admin')->as('admin.')->group(function () {
+        Route::get('/super', function () {
+            return Inertia::render('Admin/SuperAdmin/Dashboard');
+        })->name('super');
+
+        Route::get('/institution', function () {
+            return Inertia::render('Admin/Institution/Dashboard');
+        })->name('institution');
+
+        Route::get('/instructor', function () {
+            return Inertia::render('Admin/Instructor/Dashboard');
+        })->name('instructor');
+
+        Route::get('/student', function () {
+            return Inertia::render('Admin/Student/Dashboard');
+        })->name('student');
+
+        Route::get('/alumni', function () {
+            return Inertia::render('Admin/Alumni/Dashboard');
+        })->name('alumni');
+
+        Route::get('/mentor', function () {
+            return Inertia::render('Admin/Mentor/Dashboard');
+        })->name('mentor');
+
+        Route::get('/organization', function () {
+            return Inertia::render('Admin/Organization/Dashboard');
+        })->name('organization');
+
+        Route::get('/merchant', function () {
+            return Inertia::render('Admin/Merchant/Dashboard');
+        })->name('merchant');
+
+        Route::get('/researcher', function () {
+            return Inertia::render('Admin/Researcher/Dashboard');
+        })->name('researcher');
+
+        // SIS Feature placeholder page using Metronic components
+        Route::get('/settings/sis-feature', function () {
+            return Inertia::render('Admin/Settings/SISFeatureName', [
+                'title' => 'SIS Feature Name',
+                'rows' => [
+                    ['field' => 'Example Field', 'value' => 'Example Value'],
+                ],
+            ]);
+        })->name('settings.sis-feature');
+    });
 });
 
 require __DIR__.'/settings.php';
