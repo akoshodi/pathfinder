@@ -1,17 +1,13 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
+import AdminLayout from '@/layouts/admin-layout';
 import DataTable from '@/components/Admin/DataTable';
-
-interface Location {
-    id: number;
-    name: string;
-}
 
 interface University {
     id: number;
     name: string;
     description: string | null;
-    location: Location;
+    location: string | null;
     type: string;
     website: string | null;
     established_year: number | null;
@@ -33,25 +29,24 @@ interface PaginatedUniversities {
 
 interface Props {
     universities: PaginatedUniversities;
-    locations: Location[];
     filters: {
         search?: string;
-        location_id?: number;
+        location?: string;
         type?: string;
         sort_by?: string;
         sort_order?: string;
     };
 }
 
-export default function Index({ universities, locations, filters }: Props) {
+export default function Index({ universities, filters }: Props) {
     const [search, setSearch] = useState(filters.search || '');
-    const [locationFilter, setLocationFilter] = useState(filters.location_id || '');
+    const [locationFilter, setLocationFilter] = useState(filters.location || '');
     const [typeFilter, setTypeFilter] = useState(filters.type || '');
 
     const handleFilter = () => {
         router.get(
             '/admin/universities',
-            { search, location_id: locationFilter, type: typeFilter },
+            { search, location: locationFilter, type: typeFilter },
             { preserveState: true, preserveScroll: true }
         );
     };
@@ -82,7 +77,7 @@ export default function Index({ universities, locations, filters }: Props) {
             render: (value: string) => <span className="font-medium">{value}</span>,
         },
         {
-            key: 'location.name',
+            key: 'location',
             label: 'Location',
             sortable: false,
         },
@@ -91,7 +86,7 @@ export default function Index({ universities, locations, filters }: Props) {
             label: 'Type',
             sortable: true,
             render: (value: string) => (
-                <span className="inline-flex rounded-full bg-blue-100 px-2 py-1 text-xs font-semibold capitalize text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                <span className="inline-flex rounded-full bg-blue-600/20 px-2 py-1 text-xs font-semibold capitalize text-blue-600">
                     {value}
                 </span>
             ),
@@ -114,11 +109,11 @@ export default function Index({ universities, locations, filters }: Props) {
             sortable: false,
             render: (value: boolean) =>
                 value ? (
-                    <span className="inline-flex rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-800 dark:bg-green-900 dark:text-green-200">
+                    <span className="inline-flex rounded-full bg-green-600/20 px-2 py-1 text-xs font-semibold text-green-600">
                         Yes
                     </span>
                 ) : (
-                    <span className="inline-flex rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-800 dark:bg-gray-900 dark:text-gray-200">
+                    <span className="inline-flex rounded-full bg-muted px-2 py-1 text-xs font-semibold text-foreground">
                         No
                     </span>
                 ),
@@ -126,15 +121,15 @@ export default function Index({ universities, locations, filters }: Props) {
     ];
 
     return (
-        <>
+        <AdminLayout title="Universities" breadcrumbs={[{ label: 'Admin' }, { label: 'Universities' }]}>
             <Head title="Universities Management" />
 
             <div className="py-12">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="mb-6 flex items-center justify-between">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Universities</h1>
-                            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                            <h1 className="text-3xl font-bold text-foreground">Universities</h1>
+                            <p className="mt-2 text-sm text-muted-foreground">
                                 Manage universities, colleges, and educational institutions
                             </p>
                         </div>
@@ -150,10 +145,10 @@ export default function Index({ universities, locations, filters }: Props) {
                     </div>
 
                     {/* Filters */}
-                    <div className="mb-6 rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+                    <div className="mb-6 rounded-lg bg-card border border-border p-6 shadow">
                         <div className="grid gap-4 md:grid-cols-4">
                             <div>
-                                <label htmlFor="search" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <label htmlFor="search" className="block text-sm font-medium text-foreground">
                                     Search
                                 </label>
                                 <input
@@ -162,38 +157,33 @@ export default function Index({ universities, locations, filters }: Props) {
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
                                     placeholder="Search universities..."
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 sm:text-sm"
+                                    className="mt-1 block w-full rounded-md shadow-sm sm:text-sm"
                                 />
                             </div>
 
                             <div>
-                                <label htmlFor="location" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <label htmlFor="location" className="block text-sm font-medium text-foreground">
                                     Location
                                 </label>
-                                <select
+                                <input
                                     id="location"
+                                    type="text"
                                     value={locationFilter}
                                     onChange={(e) => setLocationFilter(e.target.value)}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 sm:text-sm"
-                                >
-                                    <option value="">All Locations</option>
-                                    {locations.map((location) => (
-                                        <option key={location.id} value={location.id}>
-                                            {location.name}
-                                        </option>
-                                    ))}
-                                </select>
+                                    placeholder="Search location..."
+                                    className="mt-1 block w-full rounded-md shadow-sm sm:text-sm"
+                                />
                             </div>
 
                             <div>
-                                <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <label htmlFor="type" className="block text-sm font-medium text-foreground">
                                     Type
                                 </label>
                                 <select
                                     id="type"
                                     value={typeFilter}
                                     onChange={(e) => setTypeFilter(e.target.value)}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 sm:text-sm"
+                                    className="mt-1 block w-full rounded-md shadow-sm sm:text-sm"
                                 >
                                     <option value="">All Types</option>
                                     <option value="university">University</option>
@@ -212,7 +202,7 @@ export default function Index({ universities, locations, filters }: Props) {
                                 </button>
                                 <button
                                     onClick={handleReset}
-                                    className="rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                                    className="rounded-md bg-muted px-4 py-2 text-sm font-medium text-foreground hover:bg-muted/80"
                                 >
                                     Reset
                                 </button>
@@ -231,6 +221,6 @@ export default function Index({ universities, locations, filters }: Props) {
                     />
                 </div>
             </div>
-        </>
+        </AdminLayout>
     );
 }

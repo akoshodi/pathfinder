@@ -1,3 +1,4 @@
+import AdminLayout from '@/layouts/admin-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import DataTable from '@/components/Admin/DataTable';
@@ -141,15 +142,12 @@ export default function Index({ companies, filters = {} }: Props) {
     ];
 
     return (
-        <>
+        <AdminLayout title="Companies" breadcrumbs={[{ label: 'Admin' }, { label: 'Companies' }]}>
             <Head title="Companies - Admin" />
-
-            <div className="py-12">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                    <div className="overflow-hidden bg-white shadow-sm dark:bg-gray-800 sm:rounded-lg">
-                        <div className="border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
+            <div className="overflow-hidden bg-card border border-border shadow-sm rounded-lg">
+                        <div className="border-b border-border bg-card px-6 py-4">
                             <div className="flex items-center justify-between">
-                                <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
+                                <h2 className="text-xl font-semibold text-foreground">
                                     Companies
                                 </h2>
                                 <Link
@@ -166,7 +164,7 @@ export default function Index({ companies, filters = {} }: Props) {
                                     placeholder="Search companies..."
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
-                                    className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                    className="rounded-md shadow-sm"
                                 />
 
                                 <input
@@ -174,13 +172,13 @@ export default function Index({ companies, filters = {} }: Props) {
                                     placeholder="Category..."
                                     value={category}
                                     onChange={(e) => setCategory(e.target.value)}
-                                    className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                    className="rounded-md shadow-sm"
                                 />
 
                                 <select
                                     value={isActive}
                                     onChange={(e) => setIsActive(e.target.value)}
-                                    className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                    className="rounded-md shadow-sm"
                                 >
                                     <option value="">All Status</option>
                                     <option value="1">Active</option>
@@ -196,7 +194,7 @@ export default function Index({ companies, filters = {} }: Props) {
                                     </button>
                                     <button
                                         onClick={handleReset}
-                                        className="flex-1 rounded-md bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                                        className="flex-1 rounded-md bg-muted px-4 py-2 text-sm font-semibold text-foreground shadow-sm hover:bg-muted/80"
                                     >
                                         Reset
                                     </button>
@@ -212,8 +210,6 @@ export default function Index({ companies, filters = {} }: Props) {
                             onView={(company) => router.visit(`/admin/companies/${company.id}`)}
                         />
                     </div>
-                </div>
-            </div>
-        </>
+        </AdminLayout>
     );
 }

@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Column<T> {
     key: keyof T | string;
@@ -37,6 +37,7 @@ interface Props<T> {
     selectable?: boolean;
     onSelectionChange?: (selected: T[]) => void;
     bulkActions?: (selected: T[]) => React.ReactNode;
+    responsiveMode?: 'table' | 'cards' | 'auto'; // 'auto' switches on mobile
 }
 
 export default function DataTable<T extends { id: number | string }>({
@@ -51,17 +52,30 @@ export default function DataTable<T extends { id: number | string }>({
     selectable = false,
     onSelectionChange,
     bulkActions,
+    responsiveMode = 'auto',
 }: Props<T>) {
     const [sortColumn, setSortColumn] = useState<string | null>(null);
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
     const [selected, setSelected] = useState<Set<number | string>>(new Set());
+    const [isMobile, setIsMobile] = useState<boolean>(typeof window !== 'undefined' && window.innerWidth < 768);
 
     const isPaginated = (data: any): data is PaginationData<T> => {
         return 'data' in data && 'current_page' in data;
     };
 
+    // Handle window resize for responsive behavior
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     const items = isPaginated(data) ? data.data : data;
     const showActions = onEdit || onDelete || onView || actions;
+    const useCardView = responsiveMode === 'cards' || (responsiveMode === 'auto' && isMobile);
 
     const toggleAll = () => {
         if (!selectable) return;
@@ -112,10 +126,80 @@ export default function DataTable<T extends { id: number | string }>({
         return item[key as keyof T];
     };
 
+    // Mobile card view
+    if (useCardView && items.length > 0) {
+        return (
+            <div className="space-y-4" data-testid="datatable-cards">
+                {loading && (
+                    <div className="flex items-center justify-center">
+                        <svg className="h-6 w-6 animate-spin text-indigo-600" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                    </div>
+                )}
+                {items.map((item) => (
+                    <div key={item.id} className="rounded-lg bg-card border border-border p-4 shadow-sm">
+                        <div className="space-y-3">
+                            {columns.map((column) => (
+                                <div key={column.key as string} className="flex justify-between items-start">
+                                    <span className="font-medium text-muted-foreground text-sm">{column.label}:</span>
+                                    <span className="text-foreground text-sm text-right">
+                                        {column.render ? column.render(getValue(item, column.key), item) : getValue(item, column.key)}
+                                    </span>
+                                </div>
+                            ))}
+                            {showActions && (
+                                <div className="flex items-center justify-end gap-2 border-t border-border pt-3">
+                                    {actions && actions(item)}
+                                    {onView && (
+                                        <button
+                                            onClick={() => onView(item)}
+                                            className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                                            title="View"
+                                        >
+                                            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
+                                        </button>
+                                    )}
+                                    {onEdit && (
+                                        <button
+                                            onClick={() => onEdit(item)}
+                                            className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                                            title="Edit"
+                                        >
+                                            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                        </button>
+                                    )}
+                                    {onDelete && (
+                                        <button
+                                            onClick={() => onDelete(item)}
+                                            className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                                            title="Delete"
+                                        >
+                                            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+    }
+
+    // Table view (desktop and empty state)
     return (
-        <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+    <div className="overflow-hidden rounded-lg bg-card border border-border shadow">
             {bulkActions && selectable && (
-                <div className="flex items-center justify-between border-b border-gray-200 bg-gray-50 px-4 py-2 text-sm dark:border-gray-700 dark:bg-gray-900">
+                <div className="flex items-center justify-between border-b border-muted bg-muted px-4 py-2 text-sm">
                     <div>
                         {selected.size} selected
                     </div>
@@ -124,20 +208,20 @@ export default function DataTable<T extends { id: number | string }>({
                     </div>
                 </div>
             )}
-            <div className="relative overflow-x-auto">
+            <div className="relative w-full overflow-x-auto">
                 {loading && (
-                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 dark:bg-gray-900/60">
+                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/60">
                         <svg className="h-6 w-6 animate-spin text-indigo-600" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
                         </svg>
                     </div>
                 )}
-                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead className="bg-gray-50 dark:bg-gray-900">
+                <table className="w-full table-auto divide-y divide-border" data-testid="datatable-table">
+                    <thead className="bg-muted">
                         <tr>
                             {selectable && (
-                                <th className="w-10 px-4">
+                                <th className="w-12 px-3 py-3 sm:px-4">
                                     <input
                                         type="checkbox"
                                         checked={selected.size === items.length && items.length > 0}
@@ -148,8 +232,8 @@ export default function DataTable<T extends { id: number | string }>({
                             {columns.map((column) => (
                                 <th
                                     key={column.key as string}
-                                    className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 ${
-                                        column.sortable ? 'cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-300' : ''
+                                    className={`px-3 py-3 sm:px-4 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground ${
+                                        column.sortable ? 'cursor-pointer select-none hover:text-foreground' : ''
                                     }`}
                                     onClick={() => column.sortable && handleSort(column)}
                                 >
@@ -157,7 +241,7 @@ export default function DataTable<T extends { id: number | string }>({
                                         {column.label}
                                         {column.sortable && (
                                             <svg
-                                                className={`h-4 w-4 ${sortColumn === (column.key as string) ? 'text-blue-600 dark:text-blue-400' : ''}`}
+                                                className={`h-4 w-4 ${sortColumn === (column.key as string) ? 'text-blue-600' : ''}`}
                                                 fill="none"
                                                 stroke="currentColor"
                                                 viewBox="0 0 24 24"
@@ -173,19 +257,19 @@ export default function DataTable<T extends { id: number | string }>({
                                 </th>
                             ))}
                             {showActions && (
-                                <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                <th className="px-3 py-3 sm:px-4 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
                                     Actions
                                 </th>
                             )}
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
+                    <tbody className="divide-y divide-border bg-card">
                         {items.length === 0 ? (
                             <tr>
-                                <td colSpan={columns.length + (showActions ? 1 : 0)} className="px-6 py-12 text-center">
-                                    <div className="text-gray-500 dark:text-gray-400">
+                                <td colSpan={columns.length + (showActions ? 1 : 0) + (selectable ? 1 : 0)} className="px-3 py-12 sm:px-4 text-center">
+                                    <div className="text-muted-foreground">
                                         <svg
-                                            className="mx-auto h-12 w-12 text-gray-400"
+                                            className="mx-auto h-12 w-12 text-muted-foreground"
                                             fill="none"
                                             stroke="currentColor"
                                             viewBox="0 0 24 24"
@@ -203,9 +287,9 @@ export default function DataTable<T extends { id: number | string }>({
                             </tr>
                         ) : (
                             items.map((item) => (
-                                <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                <tr key={item.id} className="hover:bg-muted/50 transition-colors">
                                     {selectable && (
-                                        <td className="w-10 px-4">
+                                        <td className="w-12 px-3 py-4 sm:px-4">
                                             <input
                                                 type="checkbox"
                                                 checked={selected.has(item.id)}
@@ -214,12 +298,14 @@ export default function DataTable<T extends { id: number | string }>({
                                         </td>
                                     )}
                                     {columns.map((column) => (
-                                        <td key={column.key as string} className="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
-                                            {column.render ? column.render(getValue(item, column.key), item) : getValue(item, column.key)}
+                                        <td key={column.key as string} className="px-3 py-4 sm:px-4 text-sm text-foreground">
+                                            <div className="line-clamp-2">
+                                                {column.render ? column.render(getValue(item, column.key), item) : getValue(item, column.key)}
+                                            </div>
                                         </td>
                                     ))}
                                     {showActions && (
-                                        <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+                                        <td className="px-3 py-4 sm:px-4 text-right text-sm font-medium">
                                             <div className="flex items-center justify-end gap-2">
                                                 {actions && actions(item)}
                                                 {onView && (
@@ -288,24 +374,24 @@ export default function DataTable<T extends { id: number | string }>({
 
             {/* Pagination */}
             {isPaginated(data) && data.last_page > 1 && (
-                <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800 sm:px-6">
+                <div className="flex items-center justify-between border-t border-border bg-card px-4 py-3 sm:px-6">
                     <div className="flex flex-1 justify-between sm:hidden">
                         <Link
                             href={data.links[0].url || '#'}
-                            className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
+                            className="relative inline-flex items-center rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
                         >
                             Previous
                         </Link>
                         <Link
                             href={data.links[data.links.length - 1].url || '#'}
-                            className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
+                            className="relative ml-3 inline-flex items-center rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
                         >
                             Next
                         </Link>
                     </div>
                     <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                         <div>
-                            <p className="text-sm text-gray-700 dark:text-gray-300">
+                            <p className="text-sm text-muted-foreground">
                                 Showing <span className="font-medium">{data.from}</span> to <span className="font-medium">{data.to}</span> of{' '}
                                 <span className="font-medium">{data.total}</span> results
                             </p>
@@ -319,8 +405,8 @@ export default function DataTable<T extends { id: number | string }>({
                                         className={`relative inline-flex items-center px-4 py-2 text-sm font-medium ${
                                             link.active
                                                 ? 'z-10 bg-blue-600 text-white'
-                                                : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
-                                        } ${index === 0 ? 'rounded-l-md' : ''} ${index === data.links.length - 1 ? 'rounded-r-md' : ''} border border-gray-300 dark:border-gray-600`}
+                                                : 'bg-card text-foreground hover:bg-muted'
+                                        } ${index === 0 ? 'rounded-l-md' : ''} ${index === data.links.length - 1 ? 'rounded-r-md' : ''} border border-border`}
                                         dangerouslySetInnerHTML={{ __html: link.label }}
                                     />
                                 ))}

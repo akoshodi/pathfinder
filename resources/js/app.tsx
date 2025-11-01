@@ -62,6 +62,9 @@ createInertiaApp({
                 if (name.startsWith('auth/') || name.startsWith('Auth/')) {
                     // Auth pages provide their own AuthLayout, so don't wrap
                     page.layout = (pageEl: ReactNode) => <>{pageEl}</>;
+                } else if (name.startsWith('Admin/')) {
+                    // Admin pages use their own Metronic AdminLayout inside the page component
+                    page.layout = (pageEl: ReactNode) => <>{pageEl}</>;
                 } else {
                     page.layout = publicPrefixes.some((p) => name.startsWith(p))
                         ? (pageEl: ReactNode) => <PublicLayout>{pageEl}</PublicLayout>

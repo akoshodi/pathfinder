@@ -1,14 +1,10 @@
+import AdminLayout from '@/layouts/admin-layout';
 import Form from './Form';
 
-interface Location {
-    id: number;
-    name: string;
-}
-
-interface Props {
-    locations: Location[];
-}
-
-export default function Create({ locations }: Props) {
-    return <Form locations={locations} />;
+export default function Create() {
+    return (
+        <AdminLayout title="Create University" breadcrumbs={[{ label: 'Admin' }, { label: 'Universities', href: '/admin/universities' }, { label: 'Create' }]}>
+            <Form />
+        </AdminLayout>
+    );
 }

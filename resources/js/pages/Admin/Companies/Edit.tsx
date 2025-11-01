@@ -1,3 +1,4 @@
+import AdminLayout from '@/layouts/admin-layout';
 import Form from './Form';
 
 interface Company {
@@ -27,5 +28,9 @@ interface Props {
 }
 
 export default function Edit({ company }: Props) {
-    return <Form company={company} isEdit={true} />;
+    return (
+        <AdminLayout title="Edit Company" breadcrumbs={[{ label: 'Admin' }, { label: 'Companies', href: '/admin/companies' }, { label: 'Edit' }]}>
+            <Form company={company} isEdit={true} />
+        </AdminLayout>
+    );
 }

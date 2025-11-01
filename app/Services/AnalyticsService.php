@@ -191,11 +191,39 @@ class AnalyticsService
      */
     protected function getAverageCompletionTime(int $assessmentTypeId): ?int
     {
+        $driver = DB::connection()->getDriverName();
+
+        // Build database-specific expression to compute minutes between two timestamps
+        $expr = match ($driver) {
+            'mysql', 'mariadb' => 'AVG(TIMESTAMPDIFF(MINUTE, started_at, completed_at))',
+            'sqlite' => 'AVG((julianday(completed_at) - julianday(started_at)) * 24 * 60)',
+            'pgsql' => 'AVG(EXTRACT(EPOCH FROM (completed_at - started_at)) / 60)',
+            'sqlsrv' => 'AVG(DATEDIFF(minute, started_at, completed_at))',
+            default => null,
+        };
+
+        if ($expr !== null) {
+            $avg = UserAssessmentAttempt::where('assessment_type_id', $assessmentTypeId)
+                ->whereNotNull('completed_at')
+                ->whereNotNull('started_at')
+                ->selectRaw($expr.' as avg_minutes')
+                ->value('avg_minutes');
+
+            return $avg !== null ? (int) round((float) $avg) : null;
+        }
+
+        // Fallback for unknown drivers: compute in PHP (less efficient, but portable)
         $avg = UserAssessmentAttempt::where('assessment_type_id', $assessmentTypeId)
             ->whereNotNull('completed_at')
-            ->selectRaw('AVG(TIMESTAMPDIFF(MINUTE, started_at, completed_at)) as avg_minutes')
-            ->value('avg_minutes');
+            ->whereNotNull('started_at')
+            ->limit(10000)
+            ->get(['started_at', 'completed_at'])
+            ->avg(function ($row) {
+                return $row->started_at && $row->completed_at
+                    ? $row->started_at->diffInMinutes($row->completed_at)
+                    : null;
+            });
 
-        return $avg ? (int) round($avg) : null;
+        return $avg !== null ? (int) round((float) $avg) : null;
     }
 }

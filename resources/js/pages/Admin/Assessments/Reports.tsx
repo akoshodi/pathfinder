@@ -1,5 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react'
 import { useMemo, useState } from 'react'
+import AdminLayout from '@/layouts/admin-layout'
 
 interface ReportItem {
   id: number
@@ -105,22 +106,22 @@ export default function ReportsPage({ filters, reports }: ReportsPageProps) {
   }, [safeReports.current_page, safeReports.last_page])
 
   return (
-    <div className="p-6">
+    <AdminLayout title="Assessment Reports" breadcrumbs={[{ label: 'Admin' }, { label: 'Assessments' }, { label: 'Reports' }]}>
       <Head title="Assessment Reports" />
       <div className="mb-6 flex items-end gap-3">
         <div>
-          <label className="block text-sm text-gray-600">Type</label>
+          <label className="block text-sm text-muted-foreground">Type</label>
           <input
-            className="rounded border px-2 py-1"
+            className="rounded border border-border bg-card px-2 py-1 text-foreground"
             placeholder="e.g. riasec, skills"
             value={type}
             onChange={(e) => setType(e.target.value)}
           />
         </div>
         <div className="grow">
-          <label className="block text-sm text-gray-600">Search</label>
+          <label className="block text-sm text-muted-foreground">Search</label>
           <input
-            className="w-full rounded border px-2 py-1"
+            className="w-full rounded border border-border bg-card px-2 py-1 text-foreground"
             placeholder="Search title, user, assessment"
             value={search ?? ''}
             onChange={(e) => setSearch(e.target.value)}
@@ -129,19 +130,19 @@ export default function ReportsPage({ filters, reports }: ReportsPageProps) {
         <button className="rounded bg-blue-600 px-3 py-2 text-white" onClick={onFilter}>
           Apply
         </button>
-        <button className="rounded bg-gray-200 px-3 py-2" onClick={onReset}>
+        <button className="rounded bg-muted px-3 py-2 text-foreground hover:bg-muted/80" onClick={onReset}>
           Reset
         </button>
         <a href={exportCsvHref} className="rounded bg-green-600 px-3 py-2 text-white">Export CSV</a>
       </div>
 
-      <div className="overflow-x-auto rounded border">
-        <table className="min-w-full divide-y">
-          <thead className="bg-gray-50">
+      <div className="overflow-x-auto rounded border border-border">
+        <table className="min-w-full divide-y divide-border bg-card">
+          <thead className="bg-muted">
             <tr>
-              <th className="px-4 py-2 text-left text-sm font-semibold">Title</th>
-              <th className="px-4 py-2 text-left text-sm font-semibold">Type</th>
-              <th className="px-4 py-2 text-left text-sm font-semibold">Assessment</th>
+              <th className="px-4 py-2 text-left text-sm font-semibold text-foreground">Title</th>
+              <th className="px-4 py-2 text-left text-sm font-semibold text-foreground">Type</th>
+              <th className="px-4 py-2 text-left text-sm font-semibold text-foreground">Assessment</th>
               <th className="px-4 py-2 text-left text-sm font-semibold">User</th>
               <th className="px-4 py-2 text-left text-sm font-semibold cursor-pointer" onClick={() => toggleSort('generated_at')}>
                 Generated {sort === 'generated_at' ? (direction === 'asc' ? '▲' : '▼') : ''}
@@ -221,6 +222,6 @@ export default function ReportsPage({ filters, reports }: ReportsPageProps) {
           )}
         </div>
       </div>
-    </div>
+    </AdminLayout>
   )
 }

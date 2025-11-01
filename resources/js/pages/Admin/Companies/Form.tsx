@@ -63,25 +63,19 @@ export default function Form({ company, isEdit = false }: Props) {
     return (
         <>
             <Head title={isEdit ? 'Edit Company' : 'Create Company'} />
+            <div className="mb-6">
+                <Link
+                    href="/admin/companies"
+                    className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+                >
+                    <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Back to Companies
+                </Link>
+            </div>
 
-            <div className="py-12">
-                <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-                    <div className="mb-6">
-                        <Link
-                            href="/admin/companies"
-                            className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-                        >
-                            <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                            </svg>
-                            Back to Companies
-                        </Link>
-                        <h1 className="mt-4 text-3xl font-bold text-gray-900 dark:text-gray-100">
-                            {isEdit ? 'Edit Company' : 'Create Company'}
-                        </h1>
-                    </div>
-
-                    <div className="overflow-hidden bg-white shadow-sm dark:bg-gray-800 sm:rounded-lg">
+            <div className="overflow-hidden bg-white shadow-sm dark:bg-gray-800 sm:rounded-lg">
                         <div className="border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
                             <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
                                 {isEdit ? 'Edit Company' : 'Create Company'}
@@ -450,8 +444,6 @@ export default function Form({ company, isEdit = false }: Props) {
                         </div>
                     </form>
                 </div>
-            </div>
-            </div>
         </>
     );
 }

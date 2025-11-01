@@ -1,4 +1,5 @@
 import { Head, Link, useForm } from '@inertiajs/react';
+import AdminLayout from '@/layouts/admin-layout';
 import { FormEventHandler } from 'react';
 
 interface Resource {
@@ -41,32 +42,31 @@ export default function Form({ resource, isEdit = false }: Props) {
     };
 
     return (
-        <>
+        <AdminLayout title={isEdit ? 'Edit Resource' : 'Create Resource'} breadcrumbs={[{ label: 'Admin' }, { label: 'Resources', href: '/admin/resources' }, { label: isEdit ? 'Edit' : 'Create' }]}>
             <Head title={isEdit ? 'Edit Resource' : 'Create Resource'} />
 
-            <div className="py-12">
-                <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-                    <div className="mb-6">
-                        <Link
-                            href="/admin/resources"
-                            className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-                        >
-                            <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                            </svg>
-                            Back to Resources
-                        </Link>
-                        <h1 className="mt-4 text-3xl font-bold text-gray-900 dark:text-gray-100">
-                            {isEdit ? 'Edit Resource' : 'Create Resource'}
-                        </h1>
-                    </div>
+            <div className="mx-auto max-w-4xl">
+                <div className="mb-6">
+                    <Link
+                        href="/admin/resources"
+                        className="inline-flex items-center text-sm text-foreground hover:underline"
+                    >
+                        <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                        Back to Resources
+                    </Link>
+                    <h1 className="mt-4 text-3xl font-bold text-foreground">
+                        {isEdit ? 'Edit Resource' : 'Create Resource'}
+                    </h1>
+                </div>
 
-                    <div className="overflow-hidden bg-white shadow-sm dark:bg-gray-800 sm:rounded-lg">
-                        <form onSubmit={submit} className="p-6">
-                            <div className="space-y-6">
+                <div className="overflow-hidden bg-card border border-border rounded-lg shadow-sm">
+                    <form onSubmit={submit} className="p-6">
+                        <div className="space-y-6">
                                 {/* Title */}
                                 <div>
-                                    <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    <label htmlFor="title" className="block text-sm font-medium text-foreground">
                                         Title *
                                     </label>
                                     <input
@@ -74,14 +74,14 @@ export default function Form({ resource, isEdit = false }: Props) {
                                         type="text"
                                         value={data.title}
                                         onChange={(e) => setData('title', e.target.value)}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                        className="mt-1 block w-full rounded-md shadow-sm"
                                     />
                                     {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title}</p>}
                                 </div>
 
                                 {/* Description */}
                                 <div>
-                                    <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    <label htmlFor="description" className="block text-sm font-medium text-foreground">
                                         Description
                                     </label>
                                     <textarea
@@ -89,7 +89,7 @@ export default function Form({ resource, isEdit = false }: Props) {
                                         rows={4}
                                         value={data.description}
                                         onChange={(e) => setData('description', e.target.value)}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                        className="mt-1 block w-full rounded-md shadow-sm"
                                     />
                                     {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
                                 </div>
@@ -97,7 +97,7 @@ export default function Form({ resource, isEdit = false }: Props) {
                                 {/* Type & URL */}
                                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                     <div>
-                                        <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label htmlFor="type" className="block text-sm font-medium text-foreground">
                                             Type *
                                         </label>
                                         <input
@@ -105,13 +105,13 @@ export default function Form({ resource, isEdit = false }: Props) {
                                             type="text"
                                             value={data.type}
                                             onChange={(e) => setData('type', e.target.value)}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                            className="mt-1 block w-full rounded-md shadow-sm"
                                         />
                                         {errors.type && <p className="mt-1 text-sm text-red-600">{errors.type}</p>}
                                     </div>
 
                                     <div>
-                                        <label htmlFor="url" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label htmlFor="url" className="block text-sm font-medium text-foreground">
                                             URL
                                         </label>
                                         <input
@@ -119,7 +119,7 @@ export default function Form({ resource, isEdit = false }: Props) {
                                             type="url"
                                             value={data.url}
                                             onChange={(e) => setData('url', e.target.value)}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                            className="mt-1 block w-full rounded-md shadow-sm"
                                         />
                                         {errors.url && <p className="mt-1 text-sm text-red-600">{errors.url}</p>}
                                     </div>
@@ -135,7 +135,7 @@ export default function Form({ resource, isEdit = false }: Props) {
                                             onChange={(e) => setData('is_featured', e.target.checked)}
                                             className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                                         />
-                                        <label htmlFor="is_featured" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                                        <label htmlFor="is_featured" className="ml-2 block text-sm text-foreground">
                                             Featured Resource
                                         </label>
                                     </div>
@@ -148,7 +148,7 @@ export default function Form({ resource, isEdit = false }: Props) {
                                             onChange={(e) => setData('is_active', e.target.checked)}
                                             className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                                         />
-                                        <label htmlFor="is_active" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                                        <label htmlFor="is_active" className="ml-2 block text-sm text-foreground">
                                             Active
                                         </label>
                                     </div>
@@ -158,7 +158,7 @@ export default function Form({ resource, isEdit = false }: Props) {
                                 <div className="flex items-center justify-end gap-4">
                                     <Link
                                         href="/admin/resources"
-                                        className="rounded-md bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                                        className="rounded-md bg-muted px-4 py-2 text-sm font-semibold text-foreground shadow-sm hover:bg-muted/80"
                                     >
                                         Cancel
                                     </Link>
@@ -174,7 +174,6 @@ export default function Form({ resource, isEdit = false }: Props) {
                         </form>
                     </div>
                 </div>
-            </div>
-        </>
+        </AdminLayout>
     );
 }

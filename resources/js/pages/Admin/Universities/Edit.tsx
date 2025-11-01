@@ -1,3 +1,4 @@
+import AdminLayout from '@/layouts/admin-layout';
 import Form from './Form';
 
 interface Location {
@@ -24,5 +25,9 @@ interface Props {
 }
 
 export default function Edit({ university, locations }: Props) {
-    return <Form university={university} locations={locations} />;
+    return (
+        <AdminLayout title="Edit University" breadcrumbs={[{ label: 'Admin' }, { label: 'Universities', href: '/admin/universities' }, { label: 'Edit' }]}>
+            <Form university={university} locations={locations} />
+        </AdminLayout>
+    );
 }

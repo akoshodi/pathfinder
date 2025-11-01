@@ -1,3 +1,4 @@
+import AdminLayout from '@/layouts/admin-layout';
 import Form from './Form';
 
 interface Competition {
@@ -25,5 +26,9 @@ interface Props {
 }
 
 export default function Edit({ competition }: Props) {
-    return <Form competition={competition} isEdit={true} />;
+    return (
+        <AdminLayout title="Edit Competition" breadcrumbs={[{ label: 'Admin' }, { label: 'Competitions', href: '/admin/competitions' }, { label: 'Edit' }]}>
+            <Form competition={competition} isEdit={true} />
+        </AdminLayout>
+    );
 }

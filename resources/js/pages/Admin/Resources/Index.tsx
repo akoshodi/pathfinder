@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import DataTable from '@/components/Admin/DataTable';
+import AdminLayout from '@/layouts/admin-layout';
 
 interface Resource {
     id: number;
@@ -132,79 +133,73 @@ export default function Index({ resources, filters = {} }: Props) {
     ];
 
     return (
-        <>
+        <AdminLayout title="Resources" breadcrumbs={[{ label: 'Admin' }, { label: 'Resources' }]}>
             <Head title="Resources - Admin" />
 
-            <div className="py-12">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                    <div className="overflow-hidden bg-white shadow-sm dark:bg-gray-800 sm:rounded-lg">
-                        <div className="border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
-                            <div className="flex items-center justify-between">
-                                <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
-                                    Resources
-                                </h2>
-                                <Link
-                                    href="/admin/resources/create"
-                                    className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
-                                >
-                                    Add Resource
-                                </Link>
-                            </div>
+            <div className="overflow-hidden bg-card border border-border shadow-sm rounded-lg">
+                <div className="border-b border-border bg-card px-6 py-4">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-xl font-semibold text-foreground">Resources</h2>
+                        <Link
+                            href="/admin/resources/create"
+                            className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+                        >
+                            Add Resource
+                        </Link>
+                    </div>
 
-                            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-4">
-                                <input
-                                    type="text"
-                                    placeholder="Search resources..."
-                                    value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
-                                    className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                                />
-
-                                <input
-                                    type="text"
-                                    placeholder="Type..."
-                                    value={type}
-                                    onChange={(e) => setType(e.target.value)}
-                                    className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                                />
-
-                                <select
-                                    value={isActive}
-                                    onChange={(e) => setIsActive(e.target.value)}
-                                    className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                                >
-                                    <option value="">All Status</option>
-                                    <option value="1">Active</option>
-                                    <option value="0">Inactive</option>
-                                </select>
-
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={handleFilter}
-                                        className="flex-1 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
-                                    >
-                                        Apply
-                                    </button>
-                                    <button
-                                        onClick={handleReset}
-                                        className="flex-1 rounded-md bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-                                    >
-                                        Reset
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <DataTable
-                            data={resources}
-                            columns={columns}
-                            onEdit={(resource) => router.visit(`/admin/resources/${resource.id}/edit`)}
-                            onDelete={handleDelete}
-                            onView={(resource) => router.visit(`/admin/resources/${resource.id}`)}
+                    <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-4">
+                        <input
+                            type="text"
+                            placeholder="Search resources..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="rounded-md shadow-sm"
                         />
+
+                        <input
+                            type="text"
+                            placeholder="Type..."
+                            value={type}
+                            onChange={(e) => setType(e.target.value)}
+                            className="rounded-md shadow-sm"
+                        />
+
+                        <select
+                            value={isActive}
+                            onChange={(e) => setIsActive(e.target.value)}
+                            className="rounded-md shadow-sm"
+                        >
+                            <option value="">All Status</option>
+                            <option value="1">Active</option>
+                            <option value="0">Inactive</option>
+                        </select>
+
+                        <div className="flex gap-2">
+                            <button
+                                onClick={handleFilter}
+                                className="flex-1 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+                            >
+                                Apply
+                            </button>
+                            <button
+                                onClick={handleReset}
+                                className="flex-1 rounded-md bg-muted px-4 py-2 text-sm font-semibold text-foreground shadow-sm hover:bg-muted/80"
+                            >
+                                Reset
+                            </button>
+                        </div>
                     </div>
                 </div>
+
+                <DataTable
+                    data={resources}
+                    columns={columns}
+                    onEdit={(resource) => router.visit(`/admin/resources/${resource.id}/edit`)}
+                    onDelete={handleDelete}
+                    onView={(resource) => router.visit(`/admin/resources/${resource.id}`)}
+                />
             </div>
-        </>
+        </AdminLayout>
     );
 }

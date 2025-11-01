@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Location;
 use App\Models\University;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,20 +16,21 @@ class UniversityController extends Controller
      */
     public function index(Request $request): InertiaResponse
     {
-        $query = University::with('location');
+        $query = University::query();
 
         // Search
         if ($request->filled('search')) {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%");
+                    ->orWhere('description', 'like', "%{$search}%")
+                    ->orWhere('location', 'like', "%{$search}%");
             });
         }
 
         // Filter by location
-        if ($request->filled('location_id')) {
-            $query->where('location_id', $request->input('location_id'));
+        if ($request->filled('location')) {
+            $query->where('location', $request->input('location'));
         }
 
         // Filter by type
@@ -45,12 +45,9 @@ class UniversityController extends Controller
 
         $universities = $query->paginate(15)->withQueryString();
 
-        $locations = Location::orderBy('name')->get(['id', 'name']);
-
         return Inertia::render('Admin/Universities/Index', [
             'universities' => $universities,
-            'locations' => $locations,
-            'filters' => $request->only(['search', 'location_id', 'type', 'sort_by', 'sort_order']),
+            'filters' => $request->only(['search', 'location', 'type', 'sort_by', 'sort_order']),
         ]);
     }
 
@@ -59,11 +56,7 @@ class UniversityController extends Controller
      */
     public function create(): InertiaResponse
     {
-        $locations = Location::orderBy('name')->get(['id', 'name']);
-
-        return Inertia::render('Admin/Universities/Create', [
-            'locations' => $locations,
-        ]);
+        return Inertia::render('Admin/Universities/Create');
     }
 
     /**
@@ -74,7 +67,7 @@ class UniversityController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'location_id' => 'required|exists:locations,id',
+            'location' => 'nullable|string|max:255',
             'type' => 'required|string|in:university,college,institute,school',
             'website' => 'nullable|url|max:255',
             'logo_url' => 'nullable|url|max:500',
@@ -94,8 +87,6 @@ class UniversityController extends Controller
      */
     public function show(University $university): InertiaResponse
     {
-        $university->load(['location', 'programs', 'courses']);
-
         return Inertia::render('Admin/Universities/Show', [
             'university' => $university,
         ]);
@@ -106,11 +97,8 @@ class UniversityController extends Controller
      */
     public function edit(University $university): InertiaResponse
     {
-        $locations = Location::orderBy('name')->get(['id', 'name']);
-
         return Inertia::render('Admin/Universities/Edit', [
             'university' => $university,
-            'locations' => $locations,
         ]);
     }
 
@@ -122,7 +110,7 @@ class UniversityController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'location_id' => 'required|exists:locations,id',
+            'location' => 'nullable|string|max:255',
             'type' => 'required|string|in:university,college,institute,school',
             'website' => 'nullable|url|max:255',
             'logo_url' => 'nullable|url|max:500',

@@ -1,3 +1,4 @@
+import AdminLayout from '@/layouts/admin-layout';
 import Form from './Form';
 
 interface User {
@@ -27,5 +28,9 @@ interface Props {
 }
 
 export default function Edit({ blogPost, users }: Props) {
-    return <Form blogPost={blogPost} users={users} isEdit={true} />;
+    return (
+        <AdminLayout title="Edit Blog Post" breadcrumbs={[{ label: 'Admin' }, { label: 'Blog Posts', href: '/admin/blog-posts' }, { label: 'Edit' }]}>
+            <Form blogPost={blogPost} users={users} isEdit={true} />
+        </AdminLayout>
+    );
 }
