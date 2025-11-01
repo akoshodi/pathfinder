@@ -113,7 +113,7 @@ class UniversitiesResponsiveFeatureTest extends TestCase
             'slug' => 'new-university',
             'description' => 'A test university',
             'location' => 'Boston',
-            'type' => 'university',
+            'type' => 'Public',
             'website' => 'https://newuniversity.edu',
         ];
 
@@ -143,7 +143,7 @@ class UniversitiesResponsiveFeatureTest extends TestCase
     {
         $university = University::factory()->create([
             'location' => 'Old Location',
-            'type' => 'university',
+            'type' => 'Public',
         ]);
 
         $data = [
@@ -151,7 +151,7 @@ class UniversitiesResponsiveFeatureTest extends TestCase
             'slug' => $university->slug,
             'description' => $university->description,
             'location' => 'New Location',
-            'type' => 'university',
+            'type' => 'Private',
         ];
 
         $response = $this->actingAs($this->user)
